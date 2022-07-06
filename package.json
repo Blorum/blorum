@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/SorenEricMent/blorum#readme",
   "dependencies": {
-    "commonjs": "^0.0.1"
+    "commonjs": "^0.0.1",
+    "express": "^4.18.1"
   }
 }
