@@ -1,0 +1,27 @@
+{
+  "name": "blorum",
+  "version": "1.0.0",
+  "description": "To combine personal blog with public forum.",
+  "main": "main.cjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SorenEricMent/blorum.git"
+  },
+  "keywords": [
+    "blog",
+    "nodejs",
+    "forum"
+  ],
+  "author": "Winslow S.E.M.",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/SorenEricMent/blorum/issues"
+  },
+  "homepage": "https://github.com/SorenEricMent/blorum#readme",
+  "dependencies": {
+    "commonjs": "^0.0.1"
+  }
+}
