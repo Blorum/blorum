@@ -4,7 +4,8 @@
   "description": "To combine personal blog with public forum.",
   "main": "main.cjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.cjs"
   },
   "repository": {
     "type": "git",
@@ -25,7 +26,7 @@
     "commonjs": "^0.0.1",
     "express": "^4.18.1",
     "inquirer": "^9.0.0",
-    "mysql": "^2.18.1",
+    "mysql2": "^2.3.3",
     "redis": "^4.2.0"
   }
 }

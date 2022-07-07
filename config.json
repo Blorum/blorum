@@ -1,5 +1,5 @@
 {
-    "is_installed": false,
+    "is_installed": true,
     "logs":{
         "level": "log",
         "colored": true
@@ -16,8 +16,10 @@
             "database": "blorum"
         },
         "redis":{
-            "host": "localhost",
-            "port": 6379,
+            "socket": {
+                "host": "localhost",
+                "port": 6379
+            },
             "password": "REDIS_PASSWORD"
         }
     }

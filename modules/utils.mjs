@@ -56,6 +56,35 @@ function generateNewToken(salt,username){
     return token;
 }
 
+function promisifiedMysqlConnect(mysqlConnection){
+    return new Promise((resolve,reject)=>{
+        mysqlConnection.connect(function(err){
+            if(err){
+                reject(err);
+            }else{
+                resolve(mysqlConnection);
+            }
+        });
+    });
+}
+
+function promisifiedRedisConnect(redisConnection){
+    return new Promise((resolve,reject)=>{
+        redisConnection.connect();
+        redisConnection.on("error",function(err){  
+            reject(err);
+        });
+        redisConnection.on("ready",function(){
+            redisConnection.ping().then(function(result){
+                if(result == "PONG"){
+                    resolve(redisConnection);
+                }else{
+                    reject("Redis connection failed.");
+                }
+            }); 
+        });
+    });
+}
 function isModuleAvailable(name){
     try {
         require.resolve(name);
@@ -64,4 +93,4 @@ function isModuleAvailable(name){
         return false;
     }
 }
-export {outputLogs,outputLogsColored,generateNewToken};
+export {outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect};
