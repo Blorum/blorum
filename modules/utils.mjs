@@ -1,3 +1,5 @@
+import "crypto";
+
 const c = {
     "reset" : "\x1b[0m",
     "bright" : "\x1b[1m",
@@ -47,4 +49,19 @@ function outputLogsColored(level,context,info){
     console.log(c.fgWhite+lc+"["+level+"]"+c.reset+c.fgGreen+"["+currentTime+"]"+c.fgBlue+"["+context+"]: "+c.reset+info);
 }
 
-export {outputLogs};
+function generateNewToken(salt,username){
+    let currentTime = new Date().toTimeString();
+    let randomSalt = crypto.randomBytes(16).toString('hex');
+    let token = crypto.createHash('blake2b512').update(salt+randomSalt+currentTime+username).digest('base64');
+    return token;
+}
+
+function isModuleAvailable(name){
+    try {
+        require.resolve(name);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+export {outputLogs,outputLogsColored,generateNewToken};
