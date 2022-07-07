@@ -1,5 +1,7 @@
 import "crypto";
 
+const version = "1.0.0 debug";
+
 const c = {
     "reset" : "\x1b[0m",
     "bright" : "\x1b[1m",
@@ -93,4 +95,4 @@ function isModuleAvailable(name){
         return false;
     }
 }
-export {outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect};
+export {version, outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect};

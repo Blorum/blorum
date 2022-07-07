@@ -1,5 +1,6 @@
 {
     "is_installed": true,
+    "port": 10975,
     "logs":{
         "level": "log",
         "colored": true

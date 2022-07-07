@@ -61,6 +61,7 @@ function initializeBlorumServer() {
             log("log", "INIT:db/mysql", "Successfully connected to MySQL Server");
         });
         return {
+            "config": config,
             "promise": Promise.all([redisPromise, mysqlPromise]),
             "log": log
         };

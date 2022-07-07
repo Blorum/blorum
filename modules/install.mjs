@@ -1,6 +1,7 @@
 import "fs";
 import "mysql2";
 import "redis";
+import {default as inquirer} from "inquirer";
 import {isModuleAvailable} from "./utils.mjs";
 
 const moduleList = ["mysql2", "redis", "inquirer","express"];
