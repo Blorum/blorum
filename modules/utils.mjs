@@ -38,6 +38,9 @@ function outputLogsColored(level,context,info){
     let currentTime = new Date().toTimeString().substring(0,8);
     let logs = "";
     switch(level){
+        case "debug":
+            var lc = c.bgMagenta;
+            break;
         case "log":
             var lc = c.bgCyan;
             break;
@@ -81,7 +84,7 @@ function promisifiedRedisConnect(redisConnection){
                 if(result == "PONG"){
                     resolve(redisConnection);
                 }else{
-                    reject("Redis connection failed.");
+                    reject("Redis connection failed: no PONG response");
                 }
             }); 
         });

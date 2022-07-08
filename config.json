@@ -2,7 +2,7 @@
     "is_installed": true,
     "port": 10975,
     "logs":{
-        "level": "log",
+        "level": "debug",
         "colored": true
     },
     "security":{
