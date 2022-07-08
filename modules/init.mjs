@@ -4,8 +4,6 @@ import { readFileSync } from "fs";
 import { outputLogsColored, outputLogs } from "./utils.mjs";
 import { default as mysql } from "mysql2";
 import { default as redis} from "redis";
-import "inquirer";
-import { installBlorum } from "./install.mjs";
 import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 
 function initializeBlorumServer() {

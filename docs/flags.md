@@ -79,6 +79,29 @@ articles, posts, notes, comments:
 
 #### comments.report
 
+#### user.create
+
+#### user.modify
+
+#### user.modify.sensitive
+
+#### user.report
+
+#### user.ban.posts
+
+#### user.ban.articles
+
+#### user.ban.reacts
+
+#### user.ban.notes
+
+#### user.remove
+
+#### user.statistics.regular_read
+
+#### user.statistics.sensitive_read
+
+
 ### Varible Flags
 
-Varible Flags are often used to set default rate limit.
+Varible Flags are often used to set rate limits.

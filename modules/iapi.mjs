@@ -18,12 +18,12 @@ class IAPI {
                         reject(err);
                     } else {
                         if (results.length === 0) {
-                            this.log("debug", "IAPI", "User not found");
+                            this.log("debug", "IAPI", "User not found: " + username);
                             reject("User not found");
                         } else {
                             let user = results[0];
                             if (user.password === password) {
-                                this.log("debug", "IAPI", "User logged in");
+                                this.log("debug", "IAPI", "User logged in: " + username);
                                 resolve(user);
                             } else {
                                 this.log("debug", "IAPI", "Wrong password");

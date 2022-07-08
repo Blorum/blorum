@@ -2,9 +2,9 @@ import "fs";
 import "mysql2";
 import "redis";
 import {default as inquirer} from "inquirer";
-import {isModuleAvailable} from "./utils.mjs";
+import {isModuleAvailable} from "./modules/utils.mjs";
 
-const moduleList = ["mysql2", "redis", "inquirer","express"];
+const moduleList = ["mysql2", "redis", "inquirer","express","redis-json"];
 
 function install(){
     console.log("******************************");
@@ -14,5 +14,7 @@ function install(){
 
     console.log("Checking module availability...");
 }
+
+install();
 
 export {install as installBlorum};

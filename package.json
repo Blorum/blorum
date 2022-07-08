@@ -5,7 +5,8 @@
   "main": "main.cjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.cjs"
+    "start": "node main.cjs",
+    "install": "node install.mjs"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "express": "^4.18.1",
     "inquirer": "^9.0.0",
     "mysql2": "^2.3.3",
-    "redis": "^4.2.0"
+    "redis": "^4.2.0",
+    "redis-json": "^6.0.3"
   }
 }
