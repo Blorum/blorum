@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 08, 2022 at 08:04 PM
+-- Generation Time: Jul 08, 2022 at 11:05 PM
 -- Server version: 5.7.30-log
 -- PHP Version: 8.0.3
 
@@ -119,6 +119,20 @@ CREATE TABLE `posts` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `reports`
+--
+
+CREATE TABLE `reports` (
+  `rid` int(10) UNSIGNED NOT NULL,
+  `author` int(10) UNSIGNED NOT NULL,
+  `reason` text NOT NULL,
+  `type` tinyint(3) UNSIGNED NOT NULL,
+  `tid` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -181,6 +195,12 @@ ALTER TABLE `posts`
   ADD KEY `fid` (`fid`);
 
 --
+-- Indexes for table `reports`
+--
+ALTER TABLE `reports`
+  ADD PRIMARY KEY (`rid`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -219,6 +239,12 @@ ALTER TABLE `notes`
 --
 ALTER TABLE `posts`
   MODIFY `pid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `reports`
+--
+ALTER TABLE `reports`
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`

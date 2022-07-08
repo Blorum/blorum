@@ -17,6 +17,7 @@ async function wrapper() {
             router
         ).listen(prerequisite.config.port, function () {
             prerequisite.log("log", "Main", "Blorum Server started on port " + finalServer.address().port);
+            console.log("Welcome to Blorum, made with ♡  by Winslow S.E.M.");
         }
         ).on('error', function (err) {
             prerequisite.log("error", "Main", "Blorum Server failed to start on port " + prerequisite.config.port);

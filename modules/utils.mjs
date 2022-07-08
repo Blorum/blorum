@@ -90,6 +90,7 @@ function promisifiedRedisConnect(redisConnection){
         });
     });
 }
+
 function isModuleAvailable(name){
     try {
         require.resolve(name);
@@ -98,4 +99,5 @@ function isModuleAvailable(name){
         return false;
     }
 }
+
 export {version, outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect};
