@@ -12,3 +12,10 @@ Languages : [English](https://github.com/SorenEricMent/blorum/blob/main/README.m
 > npm install
 
 ...Simple like that
+
+
+## Logo
+
+The Blorum Project's Logo is distributed under the license of Creative Commons Attribution-ShareAlike 4.0 International Public License.
+
+You could read it in the second part of the LICENSE.
