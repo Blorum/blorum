@@ -1,6 +1,9 @@
 import {default as express} from "express";
 import { version } from "./utils.mjs";
 import {IAPI} from "./iapi.mjs";
+import {default as fs} from "fs";
+import { fileURLToPath } from "url";
+import { join } from "path";
 
 function initializeRouter(db,log,salt){
     const iapi = new IAPI(db,log,salt);
@@ -27,9 +30,46 @@ function initializeRouter(db,log,salt){
     blorumRouter.delete('/user/delete', function (req, res) {
         
     });
+    blorumRouter.get('/statics/*', function(req, res){
+        let path = req.params[0];
+        let __dirname = fileURLToPath(import.meta.url);
+        let filePath = join(__dirname, '..', '..','statics', path);
+        let testExistPromise = new Promise(function(resolve, reject){
+            fs.access(filePath, fs.constants.R_OK, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+        let testIsFilePromise = new Promise(function(resolve, reject){
+            fs.stat(filePath, (err, stats) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (stats.isFile()) {
+                        resolve();
+                    } else {
+                        reject(new Error("Not a file"));
+                    }
+                }
+            });
+        });
+        Promise.allSettled([testExistPromise, testIsFilePromise]).then(function(results){
+            if (results[0].status === "fulfilled" && results[1].status === "fulfilled") {
+                res.status(200).sendFile(path, {root: './statics'});
+            } else {
+                res.status(404).send();
+            }
+        }
+        ).catch(function(err){
+            res.status(500).send();
+        });
+    });
     blorumRouter.get('*', function(req, res){
         res.set(commonHeader);
-        res.send('Router does not exist.', 404);
+        res.status(418).send('Router does not exist.');
     });
     return blorumRouter;
 }

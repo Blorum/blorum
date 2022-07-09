@@ -5,7 +5,8 @@ async function wrapper() {
     console.log("[WRAPPER] Starting Blorum Server (" + utils.version + ")...");
     const initializeBlorumServer = (await import("./modules/init.mjs")).initializeBlorumServer;
     const initializeRouter = (await import("./modules/router.mjs")).default;
-    const extensionList = (await import("./modules/extension.mjs"))
+    const extensionList = (await import("./modules/extension.mjs")).extensionList;
+    
     const prerequisite = initializeBlorumServer();
     prerequisite.promise.then(function (results) {
         prerequisite.log("log", "Main", "Blorum pre-initialization finished.");
