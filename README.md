@@ -1,4 +1,6 @@
-# The Blorum Project - API Server
+# The Blorum Project - API Server 
+<img alt="Blorum Bird" src="https://github.com/SorenEricMent/blorum/blob/main/statics/Blorum.png" width="100" height="100">
+
 Languages : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) [中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-cn.md)
 
 #### _To combine personal blog with public forum._
