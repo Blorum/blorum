@@ -100,4 +100,8 @@ function isModuleAvailable(name){
     }
 }
 
+function SHA512Hash(text){
+    return crypto.createHash("sha512").update(text).digest("hex");
+}
+
 export {version, outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect};
