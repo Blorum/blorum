@@ -13,12 +13,6 @@ function MysqlIntegrityCheck(mysqlConnection) {
     });
 }
 
-function loadSiteConfig(mysqlConnection) {
-    return new Promise((resolve, reject) => {
-
-    });
-}
-
 function initializeBlorumServer() {
     const __dirname = fileURLToPath(import.meta.url);
     let bootConfigPath = join(__dirname, '..', '..', 'config.json');
@@ -71,9 +65,13 @@ function initializeBlorumServer() {
                         if (err) {
                             throw err;
                         }
+                        let siteConfig = {};
+                        for(const element of result){
+                            siteConfig[element.flag] = element.value;
+                        }
                         resolve({
                             "mysql": mysqlConnection,
-                            "site_config": result
+                            "site_config": siteConfig
                         });
                     });
                 }).catch(function (err) {
@@ -87,7 +85,7 @@ function initializeBlorumServer() {
         });
         return {
             "bootConfig": bootConfig,
-            "promise": Promise.all([redisPromise, mysqlPromise]),
+            "promise": Promise.all([mysqlPromise, redisPromise]),
             "log": log
         };
     }

@@ -1,4 +1,4 @@
-import "crypto";
+import { default as crypto } from "crypto";
 import Redis from "ioredis";
 
 const version = "1.0.0 in_dev (unf, debug) dv 10001";
@@ -92,8 +92,6 @@ function promisifiedRedisConnect(config) {
     });
 }
 
-
-
 function isModuleAvailable(name) {
     try {
         require.resolve(name);
@@ -103,4 +101,14 @@ function isModuleAvailable(name) {
     }
 }
 
-export { version, outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect };
+function strASCIIOnly(str){
+    return /^[\x00-\x7F]*$/.test(str);
+}
+
+function strStrictLegal(str){
+    return /^[a-zA-Z0-9_]+$/.test(str);
+}
+
+export { 
+    version, outputLogs, outputLogsColored, blake2bHash, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect
+};
