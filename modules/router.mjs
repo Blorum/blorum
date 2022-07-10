@@ -88,19 +88,23 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.post('/user/register', function (req, res) {
         let b = req.body;
         if(b.hasOwnProperty("username") && b.hasOwnProperty("password")  && b.hasOwnProperty("email") && b.hasOwnProperty("nickname")){
-            try {
-                res.set("Content-Type","application/json");
-                res.set(commonHeader);
-                iapi.userRegister(b.username, b.nickname, b.password, b.email).then(function (result) {
-                    res.status(200).send(result);
-                }
-                ).catch(function (error) {
+            if(typeof b.username == "string" && typeof b.password == "string" && typeof b.email == "string" && typeof b.nickname == "string" ){
+                try {
+                    res.set("Content-Type","application/json");
+                    res.set(commonHeader);
+                    iapi.userRegister(b.username, b.nickname, b.password, b.email).then(function (result) {
+                        res.status(200).send(result);
+                    }
+                    ).catch(function (error) {
+                        log("debug", "Router", "Failed to register user: " + error);
+                        res.sendStatus(500);
+                    });
+                } catch (error) {
                     log("debug", "Router", "Failed to register user: " + error);
                     res.sendStatus(500);
-                });
-            } catch (error) {
-                log("debug", "Router", "Failed to register user: " + error);
-                res.sendStatus(500);
+                }
+            }else{
+                res.sendStatus(400);
             }
         }else{
             res.sendStatus(400);
