@@ -10,19 +10,19 @@ async function wrapper() {
     const prerequisite = initializeBlorumServer();
     prerequisite.promise.then(function (results) {
         prerequisite.log("log", "Main", "Blorum pre-initialization finished.");
-        let router = initializeRouter(results, prerequisite.log, prerequisite.config.salt);
-        if (prerequisite.config.port <= 1000 && prerequisite.config.port != 0) {
+        let router = initializeRouter(results, prerequisite.log, prerequisite.bootConfig.salt);
+        if (prerequisite.bootConfig.port <= 1000 && prerequisite.bootConfig.port != 0) {
             prerequisite.log("warn", "Main", "Port might cause conflict.");
             prerequisite.log("warn", "Main", "If you are under *Unix system, this require privilege.");
         }
         let finalServer = http.createServer(
             router
-        ).listen(prerequisite.config.port, function () {
+        ).listen(prerequisite.bootConfig.port, function () {
             prerequisite.log("log", "Main", "Blorum Server started on port " + finalServer.address().port);
             console.log("Welcome to Blorum, made with ♡  by Winslow S.E.M.");
         }
         ).on('error', function (err) {
-            prerequisite.log("error", "Main", "Blorum Server failed to start on port " + prerequisite.config.port);
+            prerequisite.log("error", "Main", "Blorum Server failed to start on port " + prerequisite.bootConfig.port);
             prerequisite.log("error", "Main", err);
         });
     });

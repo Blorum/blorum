@@ -1,10 +1,10 @@
 import "fs";
 import "mysql2";
-import "redis";
+import "ioredis";
 import {default as inquirer} from "inquirer";
 import {isModuleAvailable} from "./modules/utils.mjs";
 
-const moduleList = ["mysql2", "redis", "inquirer","express","redis-json"];
+const moduleList = ["mysql2", "ioredis", "inquirer","express","redis-json"];
 
 function install(){
     console.log("******************************");

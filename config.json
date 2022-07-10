@@ -17,10 +17,8 @@
             "database": "blorum"
         },
         "redis":{
-            "socket": {
-                "host": "localhost",
-                "port": 6379
-            },
+            "host": "localhost",
+            "port": 6379,
             "password": "REDIS_PASSWORD"
         }
     }

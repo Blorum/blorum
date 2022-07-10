@@ -11,21 +11,29 @@ Languages : [English](https://github.com/SorenEricMent/blorum/blob/main/README.m
 ## How to install
 
 > git clone https://github.com/SorenEricMent/blorum
+> 
 > npm install
 
-...As simple like that
+...As simple as that
 
 Blorum provided three install modes for you to choose
 - Noob mode
+
 Only ask you basic informations, done quick.
 
 - Expert mode
+
 Ask you about basic informations, site configs..., this mode is suggested.
 
 - Lunatic Expert mode
+
 Ask you to config EVERY values and flags, takes an EXTREMELY long time, be sure if you want to use it.
 
 In the process of installation, if you typoed, you could input "back" to change the answer to previous quesition.
+
+## Documentations
+Documents about the Blorum and the whole Blorum project could be found under this repo 
+[https://github.com/Blorum/blorum-docs](https://github.com/Blorum/blorum-docs)
 
 ## Logo
 

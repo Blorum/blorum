@@ -33,7 +33,21 @@ function initializeRouter(db,log,salt){
         res.status(200).send();
     });
 
-    blorumRouter.post('/user/*', function (req, res) {
+    blorumRouter.post('/user/logout', function (req, res) {
+        console.log(req,res);
+        res.set("Content-Type","application/json");
+        res.set(commonHeader);
+        res.status(200).send();
+    });
+
+    blorumRouter.post('/user/suicide', function (req, res) {
+        console.log(req,res);
+        res.set("Content-Type","application/json");
+        res.set(commonHeader);
+        res.status(200).send();
+    });
+
+    blorumRouter.post('/users/*', function (req, res) {
         console.log(req,res);
         res.set("Content-Type","application/json");
         res.set(commonHeader);
@@ -41,10 +55,10 @@ function initializeRouter(db,log,salt){
     });
 
 
-
     blorumRouter.delete('/user/delete', function (req, res) {
         
     });
+
     blorumRouter.get("/favicon.ico", function(req, res){
         let __dirname = fileURLToPath(import.meta.url);
         let filePath = join(__dirname, '..', '..','statics/blorum256.ico');
