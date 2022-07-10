@@ -54,11 +54,12 @@ function outputLogsColored(level,context,info){
     console.log(c.fgWhite+lc+"["+level+"]"+c.reset+c.fgGreen+"["+currentTime+"]"+c.fgBlue+"["+context+"]: "+c.reset+info);
 }
 
+function blake2bHash(text){
+    return crypto.createHash("blake2b512").update(text).digest("base64");
+}
+
 function generateNewToken(salt,username){
-    let currentTime = new Date().toTimeString();
-    let randomSalt = crypto.randomBytes(16).toString('hex');
-    let token = crypto.createHash('blake2b512').update(salt+randomSalt+currentTime+username).digest('base64');
-    return token;
+    return blake2bHash(salt+crypto.randomBytes(16).toString('hex')+new Date().toTimeString()+username);
 }
 
 function promisifiedMysqlConnect(mysqlConnection){
@@ -100,8 +101,5 @@ function isModuleAvailable(name){
     }
 }
 
-function SHA512Hash(text){
-    return crypto.createHash("sha512").update(text).digest("hex");
-}
 
 export {version, outputLogs, outputLogsColored, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect};

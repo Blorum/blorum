@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 08, 2022 at 11:05 PM
+-- Generation Time: Jul 10, 2022 at 11:03 AM
 -- Server version: 5.7.30-log
 -- PHP Version: 8.0.3
 
@@ -32,29 +32,94 @@ CREATE TABLE `articles` (
   `author` int(10) UNSIGNED NOT NULL,
   `title` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `excerpt` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `excerpt` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `tags` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `category` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `statistics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
+  `statistics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `slug` char(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `articles`
+--
+
+INSERT INTO `articles` (`aid`, `author`, `title`, `content`, `excerpt`, `tags`, `category`, `config`, `statistics`, `slug`) VALUES
+(0, 0, 'reserved', 'reserved', 'reserved', 'reserved', 'reserved', 'reserved', 'reserved', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `comments`
+-- Table structure for table `comments_a`
 --
 
-CREATE TABLE `comments` (
+CREATE TABLE `comments_a` (
   `cid` int(10) UNSIGNED NOT NULL,
   `aid` int(10) UNSIGNED NOT NULL,
+  `nid` int(10) UNSIGNED NOT NULL,
   `uid` int(10) UNSIGNED NOT NULL,
   `depth` tinyint(4) NOT NULL,
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `reply_to` int(10) UNSIGNED NOT NULL,
   `children` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `type` tinyint(4) NOT NULL
+  `type` tinyint(4) NOT NULL,
+  `statistics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `comments_a`
+--
+
+INSERT INTO `comments_a` (`cid`, `aid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`) VALUES
+(0, 0, 0, 0, 0, 'reserved', 0, 'reserved', 0, 'reserved');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `comments_p`
+--
+
+CREATE TABLE `comments_p` (
+  `cid` int(10) UNSIGNED NOT NULL,
+  `pid` int(10) UNSIGNED NOT NULL,
+  `nid` int(10) UNSIGNED NOT NULL,
+  `uid` int(10) UNSIGNED NOT NULL,
+  `depth` tinyint(3) UNSIGNED NOT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `reply_to` int(10) UNSIGNED NOT NULL,
+  `children` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `type` tinyint(4) NOT NULL,
+  `statistics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `comments_p`
+--
+
+INSERT INTO `comments_p` (`cid`, `pid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`) VALUES
+(0, 0, 0, 0, 0, 'reserved', 0, 'reserved', 0, 'reserved');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `comments_u`
+--
+
+CREATE TABLE `comments_u` (
+  `cid` int(10) UNSIGNED NOT NULL,
+  `to_uid` int(10) UNSIGNED NOT NULL,
+  `uid` int(10) UNSIGNED NOT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `type` tinyint(4) NOT NULL,
+  `statistics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `comments_u`
+--
+
+INSERT INTO `comments_u` (`cid`, `to_uid`, `uid`, `content`, `type`, `statistics`) VALUES
+(0, 0, 0, 'reserved', 0, 'reserved');
 
 -- --------------------------------------------------------
 
@@ -77,7 +142,7 @@ CREATE TABLE `forum` (
   `fid` int(10) UNSIGNED NOT NULL,
   `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `excerpt` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `excerpt` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `default_permission` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `attach` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `pin` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
@@ -93,11 +158,19 @@ CREATE TABLE `forum` (
 CREATE TABLE `notes` (
   `nid` int(10) UNSIGNED NOT NULL,
   `aid` int(10) UNSIGNED NOT NULL,
+  `cid` int(10) UNSIGNED NOT NULL,
   `from_pos` bigint(20) UNSIGNED NOT NULL,
   `to_pos` bigint(20) UNSIGNED NOT NULL,
   `author` int(10) UNSIGNED NOT NULL,
   `content` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `notes`
+--
+
+INSERT INTO `notes` (`nid`, `aid`, `cid`, `from_pos`, `to_pos`, `author`, `content`) VALUES
+(0, 0, 0, 0, 0, 0, 'reserved');
 
 -- --------------------------------------------------------
 
@@ -157,14 +230,32 @@ CREATE TABLE `users` (
 -- Indexes for table `articles`
 --
 ALTER TABLE `articles`
-  ADD PRIMARY KEY (`aid`);
+  ADD PRIMARY KEY (`aid`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `category` (`category`);
 
 --
--- Indexes for table `comments`
+-- Indexes for table `comments_a`
 --
-ALTER TABLE `comments`
+ALTER TABLE `comments_a`
   ADD PRIMARY KEY (`cid`),
-  ADD KEY `aid` (`aid`);
+  ADD KEY `aid` (`aid`),
+  ADD KEY `nid` (`nid`);
+
+--
+-- Indexes for table `comments_p`
+--
+ALTER TABLE `comments_p`
+  ADD PRIMARY KEY (`cid`),
+  ADD KEY `aid` (`pid`),
+  ADD KEY `nid` (`nid`);
+
+--
+-- Indexes for table `comments_u`
+--
+ALTER TABLE `comments_u`
+  ADD PRIMARY KEY (`cid`),
+  ADD KEY `aid` (`to_uid`);
 
 --
 -- Indexes for table `config`
@@ -198,13 +289,15 @@ ALTER TABLE `posts`
 -- Indexes for table `reports`
 --
 ALTER TABLE `reports`
-  ADD PRIMARY KEY (`rid`);
+  ADD PRIMARY KEY (`rid`),
+  ADD KEY `tid` (`tid`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`uid`);
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `username` (`username`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -214,12 +307,24 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `articles`
 --
 ALTER TABLE `articles`
-  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `comments`
+-- AUTO_INCREMENT for table `comments_a`
 --
-ALTER TABLE `comments`
+ALTER TABLE `comments_a`
+  MODIFY `cid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `comments_p`
+--
+ALTER TABLE `comments_p`
+  MODIFY `cid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `comments_u`
+--
+ALTER TABLE `comments_u`
   MODIFY `cid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -232,7 +337,7 @@ ALTER TABLE `forum`
 -- AUTO_INCREMENT for table `notes`
 --
 ALTER TABLE `notes`
-  MODIFY `nid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `nid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `posts`
