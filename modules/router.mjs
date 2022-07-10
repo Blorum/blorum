@@ -12,7 +12,8 @@ function initializeRouter(db,log,salt){
         "X-Powered-By": "Blorum",
         "Access-Control-Allow-Origin": "*"
     };
-
+    blorumRouter.use(express.json());
+    
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
@@ -27,14 +28,14 @@ function initializeRouter(db,log,salt){
     });
 
     blorumRouter.post('/user/register', function (req, res) {
-        console.log(req,res);
+        console.log(req.body);
         res.set("Content-Type","application/json");
         res.set(commonHeader);
         res.status(200).send();
     });
 
     blorumRouter.post('/user/logout', function (req, res) {
-        console.log(req,res);
+        console.log(req);
         res.set("Content-Type","application/json");
         res.set(commonHeader);
         res.status(200).send();

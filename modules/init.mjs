@@ -3,13 +3,13 @@ import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { outputLogsColored, outputLogs } from "./utils.mjs";
 import { default as mysql } from "mysql2";
-import { default as redis} from "ioredis";
+import { default as redis } from "ioredis";
 import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 
 
 function MysqlIntegrityCheck(mysqlConnection) {
     return new Promise((resolve, reject) => {
-        
+        resolve();
     });
 }
 
@@ -63,12 +63,27 @@ function initializeBlorumServer() {
         }).then(function () {
             log("log", "INIT:db/redis", "Successfully connected to Redis Server");
         });
-        let mysqlPromise = promisifiedMysqlConnect(mysqlConnection);
-        mysqlPromise.catch(function (err) {
-            log("error", "INIT:db/mysql", "Failed to connect to MySQL Server");
-            throw err;
-        }).then(function () {
-            log("log", "INIT:db/mysql", "Successfully connected to MySQL Server");
+        let mysqlPromise = new Promise((resolve, reject) => {
+            promisifiedMysqlConnect(mysqlConnection).then(function (conn) {
+                log("log", "INIT:db/mysql", "Successfully connected to MySQL Server");
+                MysqlIntegrityCheck(conn).then(function () {
+                    conn.query("SELECT * FROM config;", function (err, result) {
+                        if (err) {
+                            throw err;
+                        }
+                        resolve({
+                            "mysql": mysqlConnection,
+                            "site_config": result
+                        });
+                    });
+                }).catch(function (err) {
+                    log("error", "INIT:db/mysql", "MySQL database integrity check failed.");
+                    throw err;
+                });
+            }).catch(function (err) {
+                log("error", "INIT:db/mysql", "Failed to connect to MySQL Server");
+                throw err;
+            });
         });
         return {
             "bootConfig": bootConfig,

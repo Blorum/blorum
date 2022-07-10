@@ -1,5 +1,5 @@
 import "crypto";
-import {default as Redis} from "ioredis";
+import Redis from "ioredis";
 
 const version = "1.0.0 in_dev (unf, debug) dv 10001";
 
