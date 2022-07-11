@@ -9,7 +9,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("site_url","127.0.0.1");
 INSERT INTO `config`(`flag`, `value`) VALUES ("site_title","Yet another Blorum site.");
 INSERT INTO `config`(`flag`, `value`) VALUES ("site_excerpt","This is a Blorum site, where you could publish blogs and chat.");
 INSERT INTO `config`(`flag`, `value`) VALUES ("site_logo","/favicon.ico");
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_method","raw_ip");
+INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_method","connection");
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_header","X-Forwarded-From");
 INSERT INTO `config`(`flag`, `value`) VALUES ("user_cookie_expire_after","2630000");
 INSERT INTO `config`(`flag`, `value`) VALUES ("admin_cookie_expire_after","1315000");

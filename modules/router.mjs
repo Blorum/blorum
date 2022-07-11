@@ -1,10 +1,12 @@
 import {default as express} from "express";
-import { version } from "./utils.mjs";
+import { version, isAllString } from "./utils.mjs";
 import { IAPI } from "./iapi.mjs";
 import { default as fs } from "fs";
 import { fileURLToPath } from "url";
 import { join } from "path";
 import { default as bodyParser } from "body-parser";
+
+Object.prototype.p = Object.prototype.hasOwnProperty;
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt){
     const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt);
@@ -79,7 +81,19 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     );
 
     blorumRouter.post('/user/login', function (req, res) {
-        console.log(req,res);
+        let b = req.body
+        if(b.p("username") && b.p("password")){
+            if(isAllString(b.username, b.password)){
+                iapi.userLogin(b.username, b.password, req).then(function(result){
+                    res.set(commonHeader);
+                    res.status(200).send(result);
+                }).catch(function(err){
+                    res.set(commonHeader);
+                    res.status(500).send(err);
+                }
+                );
+            }
+        }
         res.set("Content-Type","application/json");
         res.set(commonHeader);
         res.status(200).send();
@@ -87,17 +101,17 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
 
     blorumRouter.post('/user/register', function (req, res) {
         let b = req.body;
-        if(b.hasOwnProperty("username") && b.hasOwnProperty("password")  && b.hasOwnProperty("email") && b.hasOwnProperty("nickname")){
-            if(typeof b.username == "string" && typeof b.password == "string" && typeof b.email == "string" && typeof b.nickname == "string" ){
+        if(b.p("username") && b.p("password") && b.p("email") && b.p("nickname")){
+            if(isAllString(b.username, b.password, b.email, b.nickname)){
                 try {
                     res.set("Content-Type","application/json");
                     res.set(commonHeader);
-                    iapi.userRegister(b.username, b.nickname, b.password, b.email).then(function (result) {
+                    iapi.userRegister(req, b.username, b.password, b.email, b.nickname).then(function (result) {
                         res.status(200).send(result);
                     }
                     ).catch(function (error) {
                         log("debug", "Router", "Failed to register user: " + error);
-                        res.sendStatus(500);
+                        res.status(500).send(error);
                     });
                 } catch (error) {
                     log("debug", "Router", "Failed to register user: " + error);

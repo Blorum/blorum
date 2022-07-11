@@ -1,4 +1,9 @@
-import { generateNewToken, blake2bHash } from "./utils.mjs";
+import {
+    generateNewToken, blake2bHash,
+    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail
+} from "./utils.mjs";
+
+Object.prototype.p = Object.prototype.hasOwnProperty;
 
 class IAPI {
     constructor(mysql, redis, siteConfig, log, salt) {
@@ -8,8 +13,31 @@ class IAPI {
         this.log = log;
         this.salt = salt;
     }
-    userLogin(username, password) {
+    IP(req) {
+        if(this.siteConfig.ip_detect_method == "connection"){
+            return req.connection.remoteAddress;
+        }else if(this.siteConfig.ip_detect_method == "header"){
+            //Default header X-Forwarded-From.
+            if(req.headers.p(this.siteConfig.ip_detect_header)){
+                return req.headers[this.siteConfig.ip_detect_header];
+            }else{
+                this.log("error", "IAPI", "Dictated IP detection method is header, but header is not found");
+                if(req.headers.p("x-forwarded-for")){
+                    return req.headers["x-forwarded-for"];
+                }else{
+                    return req.connection.remoteAddress;
+                }
+            }
+        }else{
+            this.log("error", "IAPI", "Dictated IP detection method is not found");
+            return req.connection.remoteAddress;
+        }
+    }
+    userLogin(req, username, password) {
+        let connIP = this.IP(req);
+        let userAgent = req.headers['user-agent'];
         return new Promise((resolve, reject) => {
+            password = blake2bHash(this.salt + password);
             this.mysql.query(
                 "SELECT * FROM users WHERE username = ?",
                 [username],
@@ -24,9 +52,11 @@ class IAPI {
                         } else {
                             let user = results[0];
                             if (user.password === password) {
+                                let newToken = generateNewToken(this.salt, username);
+                                
                                 this.log("debug", "IAPI", "User logged in: " + username);
                                 resolve({
-                                    "uid":user
+                                    "uid": user
                                 });
                             } else {
                                 this.log("debug", "IAPI", "Wrong password");
@@ -38,42 +68,52 @@ class IAPI {
             );
         });
     }
-    userRegister(username, nickname, email, password) {
-        password = blake2bHash(password, this.salt);
+    userRegister(req, username, password, email, nickname) {
+        let connIP = this.IP(req);
+        let userAgent = req.headers['user-agent'];
         return new Promise((resolve, reject) => {
-            this.mysql.query(
-                "SELECT * FROM users WHERE username = ?",
-                [username],
-                (err, results) => {
-                    if (err) {
-                        this.log("debug", "IAPI", "Failed to query database");
-                        reject(err);
-                    } else {
-                        if (results.length === 0) {
-                            this.mysql.query(
-                                "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                [username, nickname, email, password, "", "", "{}", "{}", "{}"],
-                                (err, results) => {
-                                    if (err) {
-                                        this.log("debug", "IAPI", "Failed to insert user");
-                                        reject(err);
-                                    } else {
-                                        this.log("debug", "IAPI", "User registered: " + username);
-                                        resolve({
-                                            "uid":results.insertId
-                                        });
-                                    }
-                                }
-                            );
+            if (!basicPasswordRequirement(password)) {
+                reject("Password does not meet basic requirements(> 8 characters, contains at least one number, one letter)");
+            }else if (!strStrictLegal(username)) {
+                reject("Username does not meet strict legal requirements(only letters, numbers, and underscores)");
+            }else if (!isValidEmail(email)) {
+                reject("Email is not valid");
+            }else{
+                password = blake2bHash(this.salt + password);
+                this.mysql.query(
+                    "SELECT * FROM users WHERE username = ?",
+                    [username],
+                    (err, results) => {
+                        if (err) {
+                            this.log("debug", "IAPI", "Failed to query database");
+                            reject(err);
                         } else {
-                            this.log("debug", "IAPI", "User already exists: " + username);
-                            reject("User already exists");
+                            if (results.length === 0) {
+                                this.mysql.query(
+                                    "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                    [username, nickname, email, password, "", "", "{}", "{}", "{}"],
+                                    (err, results) => {
+                                        if (err) {
+                                            this.log("debug", "IAPI", "Failed to insert user");
+                                            reject(err);
+                                        } else {
+                                            this.log("debug", "IAPI", "User registered: " + username);
+                                            resolve({
+                                                "uid": results.insertId
+                                            });
+                                        }
+                                    }
+                                );
+                            } else {
+                                this.log("debug", "IAPI", "User already exists: " + username);
+                                reject("User already exists");
+                            }
                         }
                     }
-                }
-            );
+                );
+            }
         });
     }
 }
 
-export {IAPI};
+export { IAPI };

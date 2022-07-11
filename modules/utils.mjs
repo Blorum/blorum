@@ -1,7 +1,7 @@
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 
-const version = "1.0.0 in_dev (unf, debug) dv 10001";
+const version = "1.0.0 in_dev (unf, debug) dv 10002";
 
 const c = {
     "reset": "\x1b[0m",
@@ -101,6 +101,15 @@ function isModuleAvailable(name) {
     }
 }
 
+function isAllString(...args){
+    for(let i = 0; i < args.length; i++){
+        if(typeof args[i] !== "string"){
+            return false;
+        }
+    }
+    return true;
+}
+
 function strASCIIOnly(str){
     return /^[\x00-\x7F]*$/.test(str);
 }
@@ -109,6 +118,17 @@ function strStrictLegal(str){
     return /^[a-zA-Z0-9_]+$/.test(str);
 }
 
+function basicPasswordRequirement(str){
+    //at least 8 characters, includes at least one number, one letter
+    return /^(?:(?=.*[a-z])|(?=.*[A-Z]))(?=.*\d)[^]{8,}$/.test(str);
+}
+
+function isValidEmail(str){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+}
+
 export { 
-    version, outputLogs, outputLogsColored, blake2bHash, generateNewToken, isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect
+    version, outputLogs, outputLogsColored, blake2bHash, generateNewToken, 
+    isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
+    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString
 };
