@@ -1,5 +1,6 @@
 const { fork } = require('node:child_process');
 const http = require('http');
+
 async function wrapper() {
     const utils = (await import("./modules/utils.mjs"));
     console.log("[WRAPPER] Starting Blorum Server (" + utils.version + ")...");

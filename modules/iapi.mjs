@@ -13,6 +13,9 @@ class IAPI {
         this.log = log;
         this.salt = salt;
     }
+    timestamp(){
+        return new Date().getTime();
+    }
     IP(req) {
         if(this.siteConfig.ip_detect_method == "connection"){
             return req.connection.remoteAddress;
@@ -39,7 +42,7 @@ class IAPI {
         return new Promise((resolve, reject) => {
             password = blake2bHash(this.salt + password);
             this.mysql.query(
-                "SELECT * FROM users WHERE username = ?",
+                "SELECT uid,permissions FROM users WHERE username = ?",
                 [username],
                 (err, results) => {
                     if (err) {
@@ -53,10 +56,26 @@ class IAPI {
                             let user = results[0];
                             if (user.password === password) {
                                 let newToken = generateNewToken(this.salt, username);
-                                
-                                this.log("debug", "IAPI", "User logged in: " + username);
-                                resolve({
-                                    "uid": user
+                                let userRole = JSON.parse(user.permissions.split(",")).role;
+                                let redisKey = "user_session:" + user.uid;
+                                this.redis.lpush(redisKey, JSON.stringify({
+                                    "token": newToken,
+                                    "statistics": {
+                                        "date": this.timestamp(),
+                                        "userAgent": userAgent,
+                                        "ip": connIP
+                                    }
+                                }), "EX", this.siteConfig.user_cookie_expire_after, (err, results) => {
+                                    if (err) {
+                                        this.log("debug", "IAPI", "Failed to push user session to redis");
+                                        reject(err);
+                                    } else {
+                                        this.log("debug", "IAPI", "Successfully pushed user session to redis, user logged in: " + username + "results: " + results);
+                                        resolve({
+                                            "uid": user,
+                                            "token": newToken
+                                        });
+                                    }
                                 });
                             } else {
                                 this.log("debug", "IAPI", "Wrong password");
@@ -89,6 +108,14 @@ class IAPI {
                             reject(err);
                         } else {
                             if (results.length === 0) {
+                                let defaultAbout;
+                                let defaultAvatar;
+                                let statisticsPrototype;
+                                let defaultPreferences;
+                                let defaultPermissions = {
+                                    "role": "user",
+                                    "flags": JSON.parse(siteConfig.user_default_flags)
+                                }
                                 this.mysql.query(
                                     "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                                     [username, nickname, email, password, "", "", "{}", "{}", "{}"],

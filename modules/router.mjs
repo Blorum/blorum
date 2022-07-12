@@ -81,6 +81,8 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     );
 
     blorumRouter.post('/user/login', function (req, res) {
+        res.set("Content-Type","application/json");
+        res.set(commonHeader);
         let b = req.body
         if(b.p("username") && b.p("password")){
             if(isAllString(b.username, b.password)){
@@ -94,9 +96,6 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                 );
             }
         }
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        res.status(200).send();
     });
 
     blorumRouter.post('/user/register', function (req, res) {
@@ -111,7 +110,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                     }
                     ).catch(function (error) {
                         log("debug", "Router", "Failed to register user: " + error);
-                        res.status(500).send(error);
+                        res.status(403).send(error);
                     });
                 } catch (error) {
                     log("debug", "Router", "Failed to register user: " + error);
@@ -140,6 +139,13 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.post('/users/*', function (req, res) {
+        console.log(req,res);
+        res.set("Content-Type","application/json");
+        res.set(commonHeader);
+        res.status(200).send();
+    });
+
+    blorumRouter.post('/heartbeat', function (req, res) {
         console.log(req,res);
         res.set("Content-Type","application/json");
         res.set(commonHeader);
