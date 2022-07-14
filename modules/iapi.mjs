@@ -1,9 +1,8 @@
+import {default as JSON} from "json5";
 import {
-    generateNewToken, blake2bHash,
-    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail
+    generateNewToken, blake3Hash, objHasAllProperties,
+    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber
 } from "./utils.mjs";
-
-Object.prototype.p = Object.prototype.hasOwnProperty;
 
 class IAPI {
     constructor(mysql, redis, siteConfig, log, salt) {
@@ -12,6 +11,8 @@ class IAPI {
         this.siteConfig = siteConfig;
         this.log = log;
         this.salt = salt;
+        this.rolePermissions = JSON.parse(siteConfig.role_permissions);
+        this.log("log", "IAPI", "IAPI instance created.");
     }
     timestamp(){
         return new Date().getTime();
@@ -21,18 +22,18 @@ class IAPI {
             return req.connection.remoteAddress;
         }else if(this.siteConfig.ip_detect_method == "header"){
             //Default header X-Forwarded-From.
-            if(req.headers.p(this.siteConfig.ip_detect_header)){
+            if(req.headers.hasOwnProperty(this.siteConfig.ip_detect_header)){
                 return req.headers[this.siteConfig.ip_detect_header];
             }else{
                 this.log("error", "IAPI", "Dictated IP detection method is header, but header is not found");
-                if(req.headers.p("x-forwarded-for")){
-                    return req.headers["x-forwarded-for"];
+                if(req.headers.hasOwnProperty("X-Forwarded-From")){
+                    return req.headers["X-Forwarded-From"];
                 }else{
                     return req.connection.remoteAddress;
                 }
             }
         }else{
-            this.log("error", "IAPI", "Dictated IP detection method is not found");
+            this.log("error", "IAPI", "Dictated IP detection method is not found.");
             return req.connection.remoteAddress;
         }
     }
@@ -40,9 +41,9 @@ class IAPI {
         let connIP = this.IP(req);
         let userAgent = req.headers['user-agent'];
         return new Promise((resolve, reject) => {
-            password = blake2bHash(this.salt + password);
+            password = blake3Hash(this.salt + password);
             this.mysql.query(
-                "SELECT uid,permissions FROM users WHERE username = ?",
+                "SELECT uid,password,permissions FROM users WHERE username = ?",
                 [username],
                 (err, results) => {
                     if (err) {
@@ -56,23 +57,27 @@ class IAPI {
                             let user = results[0];
                             if (user.password === password) {
                                 let newToken = generateNewToken(this.salt, username);
-                                let userRole = JSON.parse(user.permissions.split(",")).role;
+                                let userRole = JSON.parse(user.permissions).role;
                                 let redisKey = "user_session:" + user.uid;
-                                this.redis.lpush(redisKey, JSON.stringify({
+                                let cookieExpireAfter = this.rolePermissions[userRole].cookie_expire_after;
+                                let finalSession = JSON.stringify({
                                     "token": newToken,
+                                    "permissions": user.permissions,
                                     "statistics": {
                                         "date": this.timestamp(),
                                         "userAgent": userAgent,
                                         "ip": connIP
                                     }
-                                }), "EX", this.siteConfig.user_cookie_expire_after, (err, results) => {
+                                });
+                                this.redis.lpush(redisKey,finalSession, (err, results) => {
                                     if (err) {
                                         this.log("debug", "IAPI", "Failed to push user session to redis");
                                         reject(err);
                                     } else {
                                         this.log("debug", "IAPI", "Successfully pushed user session to redis, user logged in: " + username + "results: " + results);
                                         resolve({
-                                            "uid": user,
+                                            "uid": user.uid,
+                                            "permissions": user.permissions,
                                             "token": newToken
                                         });
                                     }
@@ -97,8 +102,10 @@ class IAPI {
                 reject("Username does not meet strict legal requirements(only letters, numbers, and underscores)");
             }else if (!isValidEmail(email)) {
                 reject("Email is not valid");
+            }else if(!strNotOnlyNumber(username)){
+                reject("Username cannot be only numbers");
             }else{
-                password = blake2bHash(this.salt + password);
+                password = blake3Hash(this.salt + password);
                 this.mysql.query(
                     "SELECT * FROM users WHERE username = ?",
                     [username],
@@ -109,28 +116,58 @@ class IAPI {
                         } else {
                             if (results.length === 0) {
                                 let defaultAbout;
-                                let defaultAvatar;
-                                let statisticsPrototype;
-                                let defaultPreferences;
+                                let defaultAvatar = this.siteConfig.default_avatar;
+                                let statisticsPrototype = {
+                                    "invited_by": 0,
+                                    "registered_at": this.timestamp(),
+                                    "create":{
+                                        "comment": 0,
+                                        "react": 0,
+                                        "article": 0,
+                                        "note": 0,	
+                                    },
+                                    "received": {
+                                        "comment": {
+                                            "profile": 0,
+                                            "article": 0,
+                                            "post": 0,
+                                            "comment": 0
+                                        }
+                                    },
+                                    "read": {
+                                        "time": 0,
+                                        "article": 0,
+                                        "post": 0
+                                    },
+                                    "invite": []
+                                };
+                                let defaultPreferences = {
+                                    
+                                };
                                 let defaultPermissions = {
                                     "role": "user",
-                                    "flags": JSON.parse(siteConfig.user_default_flags)
+                                    "flags": JSON.parse(this.siteConfig.role_permissions)[this.siteConfig.register_default_role]
                                 }
-                                this.mysql.query(
-                                    "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                    [username, nickname, email, password, "", "", "{}", "{}", "{}"],
-                                    (err, results) => {
-                                        if (err) {
-                                            this.log("debug", "IAPI", "Failed to insert user");
-                                            reject(err);
-                                        } else {
-                                            this.log("debug", "IAPI", "User registered: " + username);
-                                            resolve({
-                                                "uid": results.insertId
-                                            });
+                                try {
+                                    this.mysql.query(
+                                        "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                        [username, nickname, email, password, defaultAvatar, "", 
+                                        JSON.stringify(statisticsPrototype), JSON.stringify(defaultPermissions), JSON.stringify(defaultPreferences)],
+                                        (err, results) => {
+                                            if (err) {
+                                                this.log("debug", "IAPI", "Failed to insert user");
+                                                reject(err);
+                                            } else {
+                                                this.log("debug", "IAPI", "User registered: " + username);
+                                                resolve({
+                                                    "uid": results.insertId
+                                                });
+                                            }
                                         }
-                                    }
-                                );
+                                    );
+                                } catch (error) {
+                                    reject(error);
+                                }
                             } else {
                                 this.log("debug", "IAPI", "User already exists: " + username);
                                 reject("User already exists");

@@ -1,7 +1,8 @@
+import { default as blake3 } from "blake3";
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 
-const version = "1.0.0 in_dev (unf, debug) dv 10002";
+const version = "1.0.0 in_dev (unf, debug) dv 10003";
 
 const c = {
     "reset": "\x1b[0m",
@@ -36,7 +37,8 @@ function outputLogs(level, context, info) {
 }
 
 function outputLogsColored(level, context, info) {
-    let currentTime = new Date().toTimeString().substring(0, 8);
+    let date = new Date();
+    let currentTime = date.toTimeString().substring(0, 8) + "." + date.getMilliseconds();
     let logs = "";
     switch (level) {
         case "debug":
@@ -55,12 +57,12 @@ function outputLogsColored(level, context, info) {
     console.log(c.fgWhite + lc + "[" + level + "]" + c.reset + c.fgGreen + "[" + currentTime + "]" + c.fgBlue + "[" + context + "]: " + c.reset + info);
 }
 
-function blake2bHash(text) {
-    return crypto.createHash("blake2b512").update(text).digest("base64");
+function blake3Hash(text) {
+    return blake3.hash(text, {"length": 66}).toString("base64");
 }
 
 function generateNewToken(salt, username) {
-    return blake2bHash(salt + crypto.randomBytes(16).toString('hex') + new Date().toTimeString() + username);
+    return blake3Hash(salt + crypto.randomBytes(16).toString('hex') + new Date().toTimeString() + username);
 }
 
 function promisifiedMysqlConnect(mysqlConnection) {
@@ -110,12 +112,25 @@ function isAllString(...args){
     return true;
 }
 
+function objHasAllProperties(obj, ...props){
+    for(let i = 0; i < props.length; i++){
+        if(!obj.hasOwnProperty(props[i])){
+            return false;
+        }
+    }
+    return true;
+}
+
 function strASCIIOnly(str){
     return /^[\x00-\x7F]*$/.test(str);
 }
 
 function strStrictLegal(str){
     return /^[a-zA-Z0-9_]+$/.test(str);
+}
+
+function strNotOnlyNumber(str){
+    return /[^0-9]/.test(str);
 }
 
 function basicPasswordRequirement(str){
@@ -128,7 +143,8 @@ function isValidEmail(str){
 }
 
 export { 
-    version, outputLogs, outputLogsColored, blake2bHash, generateNewToken, 
+    version, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
-    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString
+    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
+    objHasAllProperties, strNotOnlyNumber
 };

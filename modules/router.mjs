@@ -1,12 +1,11 @@
+import {default as JSON} from "json5";
 import {default as express} from "express";
-import { version, isAllString } from "./utils.mjs";
+import { version, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
 import { IAPI } from "./iapi.mjs";
 import { default as fs } from "fs";
 import { fileURLToPath } from "url";
 import { join } from "path";
 import { default as bodyParser } from "body-parser";
-
-Object.prototype.p = Object.prototype.hasOwnProperty;
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt){
     const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt);
@@ -19,14 +18,22 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
-        res.status(200).send({"server": "Blorum", "version": version});
+        res.status(200).send({"server": "blorum", "version": version});
     });
 
+    //Static file serving
     blorumRouter.get("/favicon.ico", function(req, res){
         let __dirname = fileURLToPath(import.meta.url);
         let filePath = join(__dirname, '..', '..','statics/blorum256.ico');
         res.status(200).sendFile(filePath);
     });
+
+    blorumRouter.get("/avatar.png", function(req, res){
+        let __dirname = fileURLToPath(import.meta.url);
+        let filePath = join(__dirname, '..', '..','statics/avatar.png');
+        res.status(200).sendFile(filePath);
+    });
+
     blorumRouter.get('/statics/*', function(req, res){
         let path = req.params[0];
         let __dirname = fileURLToPath(import.meta.url);
@@ -64,11 +71,8 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
             res.status(500).send();
         });
     });
-    blorumRouter.get('*', function(req, res){
-        res.set(commonHeader);
-        res.status(418).send('Router does not exist.');
-    });
 
+    //JSON API
     blorumRouter.use(bodyParser.json({limit: '50mb'}));
     blorumRouter.use(function(err, req, res, next){
         if (err instanceof SyntaxError) {
@@ -83,24 +87,27 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.post('/user/login', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
-        let b = req.body
-        if(b.p("username") && b.p("password")){
+        let b = req.body;
+        if(objHasAllProperties(b, "username", "password")){
             if(isAllString(b.username, b.password)){
-                iapi.userLogin(b.username, b.password, req).then(function(result){
+                iapi.userLogin(req, b.username, b.password).then(function(result){
                     res.set(commonHeader);
                     res.status(200).send(result);
                 }).catch(function(err){
                     res.set(commonHeader);
                     res.status(500).send(err);
-                }
-                );
+                });
+            }else{
+                res.sendStatus(400);
             }
+        }else{
+            res.sendStatus(400);
         }
     });
 
     blorumRouter.post('/user/register', function (req, res) {
         let b = req.body;
-        if(b.p("username") && b.p("password") && b.p("email") && b.p("nickname")){
+        if(objHasAllProperties(b, "username", "password", "email")){
             if(isAllString(b.username, b.password, b.email, b.nickname)){
                 try {
                     res.set("Content-Type","application/json");
@@ -125,38 +132,39 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.post('/user/logout', function (req, res) {
-        console.log(req);
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        res.status(200).send();
     });
 
-    blorumRouter.post('/user/suicide', function (req, res) {
-        console.log(req,res);
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        res.status(200).send();
-    });
-
-    blorumRouter.post('/users/*', function (req, res) {
-        console.log(req,res);
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        res.status(200).send();
-    });
-
-    blorumRouter.post('/heartbeat', function (req, res) {
-        console.log(req,res);
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        res.status(200).send();
-    });
-
-
-    blorumRouter.delete('/user/delete', function (req, res) {
+    blorumRouter.get('/user/*', function (req, res) {
         
     });
 
+    blorumRouter.post('/remove/account', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/article', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/account', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/post', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/comment', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/react', function (req, res) {
+    });
+
+
+
+    blorumRouter.post('/heartbeat', function (req, res) {
+    });
+
+    blorumRouter.get('*', function(req, res){
+        res.set(commonHeader);
+        res.status(418).send('Router does not exist.');
+    });
     return blorumRouter;
 }
 
