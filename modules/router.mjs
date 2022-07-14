@@ -134,9 +134,41 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.post('/user/logout', function (req, res) {
     });
 
-    blorumRouter.get('/user/*', function (req, res) {
+    blorumRouter.post('/user/invite', function (req, res) {
+    });
+
+    blorumRouter.get('/users/*', function (req, res) {
         
     });
+
+
+    blorumRouter.post('/create/user', function (req, res) {
+    });
+
+    blorumRouter.post('/create/article', function (req, res) {
+    });
+
+    blorumRouter.post('/create/post', function (req, res) {
+    });
+
+    blorumRouter.post('/create/comment', function (req, res) {
+    });
+
+    blorumRouter.post('/create/note', function (req, res) {
+    });
+
+    blorumRouter.post('/create/react', function (req, res) {
+    });
+
+    blorumRouter.post('/create/forum', function (req, res) {
+    });
+
+    blorumRouter.post('/create/category', function (req, res) {
+    });
+
+    blorumRouter.post('/create/tag', function (req, res) {
+    });
+    
 
     blorumRouter.post('/remove/account', function (req, res) {
     });
@@ -156,6 +188,17 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.post('/remove/react', function (req, res) {
     });
 
+    blorumRouter.post('/remove/note', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/forum', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/category', function (req, res) {
+    });
+
+    blorumRouter.post('/remove/tag', function (req, res) {
+    });
 
 
     blorumRouter.post('/heartbeat', function (req, res) {
