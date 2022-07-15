@@ -1,4 +1,6 @@
-import {default as JSON} from "json5";
+import parse from "json5";
+JSON.parse = parse.parse;
+
 import {default as express} from "express";
 import { version, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
 import { IAPI } from "./iapi.mjs";

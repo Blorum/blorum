@@ -1,4 +1,6 @@
-import {default as JSON} from "json5";
+import parse from "json5";
+JSON.parse = parse.parse;
+
 import {
     generateNewToken, blake3Hash, objHasAllProperties,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber
@@ -11,7 +13,7 @@ class IAPI {
         this.siteConfig = siteConfig;
         this.log = log;
         this.salt = salt;
-        this.rolePermissions = JSON.parse(siteConfig.role_permissions);
+        this.rolePermissions = JSON.parse(siteConfig.roles_permissions);
         this.log("log", "IAPI", "IAPI instance created.");
     }
     timestamp(){
@@ -37,6 +39,35 @@ class IAPI {
             return req.connection.remoteAddress;
         }
     }
+    removeExpiredSessions(redisKey, userPermissions, results){
+        let promisePool = [];
+        for(const element of results){
+            let parsedElement = JSON.parse(element);
+            if(parsedElement.statistics.date + userPermissions.flags.cookie_expire_after < this.timestamp()){
+                promisePool.push(new Promise((resolve, reject) => {
+                    this.redis.lrem(redisKey, 0, element, (err, results) => {
+                        if(err){
+                            reject(err);
+                            this.log("log", "IAPI", "Failed to remove expired session from redis");
+                        }else{
+                            resolve(results);
+                        }
+                    });
+                }));
+            }
+        }
+        return new Promise((resolve, reject) => {
+            Promise.all(promisePool).then((results) => {
+                let totalRemovedSessions = 0;
+                for(const element of results){
+                    totalRemovedSessions += element;
+                }
+                resolve(totalRemovedSessions);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
     userLogin(req, username, password) {
         let connIP = this.IP(req);
         let userAgent = req.headers['user-agent'];
@@ -57,7 +88,7 @@ class IAPI {
                             let user = results[0];
                             if (user.password === password) {
                                 let newToken = generateNewToken(this.salt, username);
-                                let userPermissions = JSON.parse(user.permissions);
+                                let userPermissions = user.permissions;
                                 let userRole = userPermissions.role;
                                 let redisKey = "user_session:" + user.uid;
                                 let cookieExpireAfter = this.rolePermissions[userRole].cookie_expire_after;
@@ -70,38 +101,32 @@ class IAPI {
                                         "ip": connIP
                                     }
                                 });
-                                
                                 this.redis.lrange(redisKey, 0, -1, (err, results) => {
-                                    for(let element of results){
-                                        element = JSON.parse(element);
-                                        console.log(element.statistics.date);
-                                        console.log(userPermissions);
-                                        console.log(this.timestamp());
-                                        if(element.statistics.date + userPermissions.flags.cookie_expire_after < this.timestamp()){
-                                            this.redis.lrem(redisKey, 0, JSON.stringify(element));
-                                            console.log(1);
+                                    this.removeExpiredSessions(redisKey, userPermissions, results).then((removedSessions) => {
+                                        if(results.length - removedSessions >= userPermissions.flags.max_session){
+                                            console.log(removedSessions);
+                                            reject("You have reached the maximum number of sessions.");
+                                        }else{
+                                            this.redis.lpush(redisKey,finalSession, (err, results) => {
+                                                if (err) {
+                                                    this.log("debug", "IAPI", "Failed to push user session to redis");
+                                                    reject(err);
+                                                } else {
+                                                    this.log("debug", "IAPI", "Successfully pushed user session to redis, user logged in: " + username + ",results: " + results);
+                                                    resolve({
+                                                        "uid": user.uid,
+                                                        "permissions": {
+                                                            "role": userRole,
+                                                            "flags": userPermissions.flags.permissions.flags
+                                                        },
+                                                        "token": newToken
+                                                    });
+                                                }
+                                            });
                                         }
-                                    }
-                                    if(results.length >= userPermissions.flags.rate_limits.max_session){
-                                        reject("You have reached the maximum number of sessions.");
-                                    }else{
-                                        this.redis.lpush(redisKey,finalSession, (err, results) => {
-                                            if (err) {
-                                                this.log("debug", "IAPI", "Failed to push user session to redis");
-                                                reject(err);
-                                            } else {
-                                                this.log("debug", "IAPI", "Successfully pushed user session to redis, user logged in: " + username + ",results: " + results);
-                                                resolve({
-                                                    "uid": user.uid,
-                                                    "permissions": {
-                                                        "role": userRole,
-                                                        "flags": userPermissions.flags.permissions.flags
-                                                    },
-                                                    "token": newToken
-                                                });
-                                            }
-                                        });
-                                    }
+                                    }).catch((err) => {
+                                        reject(err);
+                                    });
                                 });
                             } else {
                                 this.log("debug", "IAPI", "Wrong password");
@@ -167,7 +192,7 @@ class IAPI {
                                 };
                                 let defaultPermissions = {
                                     "role": "user",
-                                    "flags": JSON.parse(this.siteConfig.role_permissions)[this.siteConfig.register_default_role]
+                                    "flags": JSON.parse(this.siteConfig.roles_permissions)[this.siteConfig.register_default_role]
                                 }
                                 try {
                                     this.mysql.query(
