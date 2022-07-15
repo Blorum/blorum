@@ -11,7 +11,7 @@ async function wrapper() {
     const prerequisite = initializeBlorumServer();
     prerequisite.promise.then(function (results) {
         prerequisite.log("log", "Main", "Blorum pre-initialization finished.");
-        let router = initializeRouter(results[0].mysql, results[1], results[0].site_config, prerequisite.log, prerequisite.bootConfig.salt);
+        let router = initializeRouter(results[0].mysql, results[1], results[0].site_config, prerequisite.log, prerequisite.bootConfig.salt, prerequisite.bootConfig.database.redis.prefix);
         if (prerequisite.bootConfig.port <= 1000 && prerequisite.bootConfig.port != 0) {
             prerequisite.log("warn", "Main", "Port might cause conflict.");
             prerequisite.log("warn", "Main", "If you are under *Unix system, this require privilege.");

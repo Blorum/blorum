@@ -7,12 +7,15 @@ import {
 } from "./utils.mjs";
 
 class IAPI {
-    constructor(mysql, redis, siteConfig, log, salt) {
+    constructor(mysql, redis, siteConfig, log, salt, redisPrefix) {
         this.mysql = mysql;
         this.redis = redis;
         this.siteConfig = siteConfig;
         this.log = log;
         this.salt = salt;
+        this.rp = redisPrefix;
+        //For util functions in IAPI, redis prefix will not be automatically added.
+        //Redis prefix needed to be added manually in caller function.
         this.rolePermissions = JSON.parse(siteConfig.roles_permissions);
         this.log("log", "IAPI", "IAPI instance created.");
     }
@@ -68,6 +71,17 @@ class IAPI {
             });
         });
     }
+    checkIfUserHasSession(uid){
+        return new Promise((resolve, reject) => {
+            this.redis.lrange(this.rp + ":user_session:" + uid, 0, -1, (err, results) => {
+                if(err){
+                    reject(err);
+                }else{
+                    resolve(results);
+                }
+            });
+        });
+    }
     userLogin(req, username, password) {
         let connIP = this.IP(req);
         let userAgent = req.headers['user-agent'];
@@ -90,7 +104,7 @@ class IAPI {
                                 let newToken = generateNewToken(this.salt, username);
                                 let userPermissions = user.permissions;
                                 let userRole = userPermissions.role;
-                                let redisKey = "user_session:" + user.uid;
+                                let redisKey = this.rp + ":user_session:" + user.uid;
                                 let cookieExpireAfter = this.rolePermissions[userRole].cookie_expire_after;
                                 let finalSession = JSON.stringify({
                                     "token": newToken,
@@ -224,6 +238,10 @@ class IAPI {
             }
         });
     }
+    userLogout(req, token){
+
+    }
+
 }
 
 export { IAPI };

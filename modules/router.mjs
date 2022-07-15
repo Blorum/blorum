@@ -9,8 +9,8 @@ import { fileURLToPath } from "url";
 import { join } from "path";
 import { default as bodyParser } from "body-parser";
 
-function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt){
-    const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt);
+function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
+    const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix);
     let blorumRouter = express();
     let commonHeader = {
         "X-Powered-By": "Blorum",
@@ -148,6 +148,9 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.get('/users/*', function (req, res) {
     });
 
+    blorumRouter.get('/avatar/*', function (req, res) {
+    });
+
 
     blorumRouter.put('/article', function (req, res) {
     });
@@ -209,9 +212,9 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     return blorumRouter;
 }
 
-export default function(mysqlConnection, redisConnection, siteConfig, log, salt){
+export default function(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
     try {
-        let router = initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt);
+        let router = initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix);
         log("log","Router","Router initialized.");
         return router;
     } catch (error) {
