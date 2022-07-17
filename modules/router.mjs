@@ -67,7 +67,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         "Access-Control-Allow-Origin": "*"
     };
 
-    let sessionCheckMiddleware = SCM(log, redisConnection);
+    let sessionCheckMiddleware = SCM(log, redisConnection, iapi);
     try {
         blorumRouter.use(sessionCheckMiddleware);
         log("log", "Router", "Session check middleware applied.");
@@ -88,11 +88,12 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.use(function(err, req, res, next){
         if (err instanceof SyntaxError) {
             res.set(commonHeader);
-            res.status(400).send('Bad Request');
+            res.sendStatus(400);
         } else {
             next();
         }
     });
+
 
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");

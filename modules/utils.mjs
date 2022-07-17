@@ -152,10 +152,24 @@ function mergeJSON(...args){
     return obj;
 }
 
+function filterSpace(str){
+    return str.replace(/\s/g, '');
+}
+
+function cookieParser(raw){
+    let cookie = {};
+    let pairs = raw.split(';');
+    for(let i = 0; i < pairs.length; i++){
+        let pair = pairs[i].split('=');
+        cookie[filterSpace(pair[0])] = pair[1];
+    }
+    return cookie;
+}
+
 
 export { 
     version, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser
 };

@@ -1,4 +1,4 @@
-function rateControlMiddleware(log, redisConnection){
+function rateControlMiddleware(log, redis, iapi){
     this.middleware = function(req, res, next){
         next();
     }

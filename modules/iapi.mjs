@@ -110,9 +110,23 @@ class IAPI {
                                 let userRole = userPermissions.role;
                                 let redisKey = this.rp + ":user_session:" + user.uid;
                                 let cookieExpireAfter = this.rolePermissions[userRole].cookie_expire_after;
+                                let permissionsRedisKey = this.rp + ":user_permissions:" + user.uid;
+                                this.redis.set(permissionsRedisKey, JSON.stringify(userPermissions), (err, results) => {
+                                    if (err) {
+                                        this.log("debug", "IAPI", "Failed to set redis key: " + permissionsRedisKey);
+                                        reject(err);
+                                    } else {
+                                        this.redis.expire(permissionsRedisKey, cookieExpireAfter, (err, results) => {
+                                            if (err) {
+                                                this.log("debug", "IAPI", "Failed to set redis key expire: " + permissionsRedisKey);
+                                                reject(err);
+                                            }
+                                        });
+                                    }
+                                });
+
                                 let finalSession = JSON.stringify({
                                     "token": newToken,
-                                    "permissions": user.permissions,
                                     "statistics": {
                                         "date": this.timestamp(),
                                         "userAgent": ua,
@@ -270,6 +284,45 @@ class IAPI {
                 });
             }).catch((err) => {
                 reject(err);
+            });
+        });
+    }
+    getUserPermissions(uid){
+        return new Promise((resolve, reject) => {
+            let redisKey = this.rp + ":user_permissions:" + uid;
+            //check if redisKey exists in redis
+            this.redis.exists(redisKey, (err, results) => {
+                if(err){
+                    reject(err);
+                }else{
+                    if(results === 1){
+                        this.redis.get(redisKey, (err, results) => {
+                            if(err){
+                                this.log("debug", "IAPI", "Failed to get user permissions from redis.");
+                                this.mysql.query(
+                                    "SELECT permissions FROM users WHERE uid = ?",
+                                    [uid],
+                                    (err, results) => {
+                                        console.log(results);
+                                        if(err){
+                                            this.log("debug", "IAPI", "Failed to query database.");
+                                            reject(err);
+                                        }else{
+                                            if(results.length === 0){
+                                                this.log("debug", "IAPI", "User not found in database.");
+                                                reject("User not found");
+                                            }else{
+                                                resolve(results[0]);
+                                            }
+                                        }
+                                    }
+                                );
+                            }else{
+                                resolve(JSON.parse(results));
+                            }
+                        });
+                    }
+                }
             });
         });
     }
