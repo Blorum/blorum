@@ -2,7 +2,7 @@ import { default as blake3 } from "blake3";
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 
-const version = "1.0.0 in_dev (unf, debug) dv 10003";
+const version = "1.0.0 in_dev (unf, debug) dv 10004";
 
 const c = {
     "reset": "\x1b[0m",

@@ -17,18 +17,33 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("default_avatar","/statics/avatar.
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_method","connection");
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_header","X-Forwarded-From");
 
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_posts","12");
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_register","1");
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_react","64");
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_comment","60");
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_remove",'
-{
+INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_create",'{
 	"article": 12,
 	"posts": 12,
-	"react": 128,
+	"notes": 30,
+	"react": 64,	
 	"comment": 60
 }');
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_articles","12");
+INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_remove",'
+{
+
+	"article": 12,
+	"posts": 20,
+	"notes": 30,
+	"react": 128,	
+	"comment": 60
+	
+}');
+INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_edit",'
+{
+
+	"article": 12,
+	"posts": 20,
+	"notes": 30,
+	"react": 128,	
+	"comment": 60
+	
+}');
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_login","30");
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_bypass_whitelist","[127.0.0.1]");
 

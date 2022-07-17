@@ -8,8 +8,25 @@ import { default as fs } from "fs";
 import { fileURLToPath } from "url";
 import { join } from "path";
 import { default as bodyParser } from "body-parser";
+import { default as RCM } from "./rate_control.mjs";
+import { default as SCM } from "./session_check.mjs";
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
+    let ipWhiteList = siteConfig.ip_rate_limit_bypass_whitelist;
+    let ipRateLimits = {
+        "create": JSON.parse(siteConfig.ip_rate_limit_create),
+        "remove": JSON.parse(siteConfig.ip_rate_limit_remove),
+        "edit": JSON.parse(siteConfig.ip_rate_limit_edit),
+        "login": siteConfig.ip_rate_limit_login,
+        "get": siteConfig.ip_rate_limit_get
+    };
+    let timestamp = function(){
+        return new Date().getTime();
+    };
+    let expireThreshold = 3600000;
+    let isTimestampExpired = function(val){
+        return val + expireThreshold < timestamp();
+    };
     let getReqInfo = function(req){
         let ip = null;
         let ua = null;
@@ -21,9 +38,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                 ip = req.headers[siteConfig.ip_detect_header];
             }else{
                 log("error", "IAPI", "Dictated IP detection method is header, but header is not found.");
-                if(req.headers.hasOwnProperty("X-Forwarded-From")){
-                    ip = req.headers["X-Forwarded-From"];
-                }else if(req.headers.hasOwnProperty("x-forwarded-from")){
+                if(req.headers.hasOwnProperty("x-forwarded-from")){
                     ip = req.headers["x-forwarded-from"];
                 }else{
                     ip = req.connection.remoteAddress;
@@ -35,8 +50,6 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
         if(req.headers.hasOwnProperty("user-agent")){
             ua = req.headers["user-agent"];
-        }else if(req.headers.hasOwnProperty("User-Agent")){
-            ua = req.headers["User-Agent"];
         }else{
             ua = "Unknown/0";
         }
@@ -53,6 +66,33 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         "X-Powered-By": "Blorum",
         "Access-Control-Allow-Origin": "*"
     };
+
+    let sessionCheckMiddleware = SCM(log, redisConnection);
+    try {
+        blorumRouter.use(sessionCheckMiddleware);
+        log("log", "Router", "Session check middleware applied.");
+    } catch (error) {
+        log("log", "Router", "Failed to apply session check middleware.");
+        process.exit(1);
+    }
+    
+    let rateControlMiddleware = RCM(log, redisConnection);
+    try {
+        blorumRouter.use(rateControlMiddleware);
+        log("log", "Router", "Rate control middleware applied.");
+    } catch (error) {
+        log("log", "Router", "Failed to apply rate control middleware.");
+    }
+
+    blorumRouter.use(bodyParser.json({limit: '50mb'}));
+    blorumRouter.use(function(err, req, res, next){
+        if (err instanceof SyntaxError) {
+            res.set(commonHeader);
+            res.status(400).send('Bad Request');
+        } else {
+            next();
+        }
+    });
 
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");
@@ -112,17 +152,6 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     //JSON API
-    blorumRouter.use(bodyParser.json({limit: '50mb'}));
-    blorumRouter.use(function(err, req, res, next){
-        if (err instanceof SyntaxError) {
-            res.set(commonHeader);
-            res.status(400).send('Bad Request');
-        } else {
-            next();
-        }
-    }
-    );
-
     blorumRouter.post('/user/login', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
@@ -132,6 +161,10 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
             if(isAllString(b.username, b.password)){
                 iapi.userLogin(reqInfo.ip, reqInfo.ua, b.username, b.password).then(function(result){
                     res.set(commonHeader);
+                    let parsedPermission = ""; //Todo
+                    res.cookie("blorum_uid", result.uid, {httpOnly: true});
+                    res.cookie("blorum_token", result.token, {httpOnly: true});
+                    res.cookie("blorum_permissions", parsedPermission, {httpOnly: true});
                     res.status(200).send(result);
                 }).catch(function(err){
                     res.set(commonHeader);
