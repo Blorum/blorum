@@ -142,9 +142,20 @@ function isValidEmail(str){
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
+function mergeJSON(...args){
+    let obj = {};
+    for(let i = 0; i < args.length; i++){
+        for(let key in args[i]){
+            obj[key] = args[i][key];
+        }
+    }
+    return obj;
+}
+
+
 export { 
     version, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber
+    objHasAllProperties, strNotOnlyNumber, mergeJSON
 };

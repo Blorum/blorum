@@ -3,7 +3,8 @@ JSON.parse = parse.parse;
 
 import {
     generateNewToken, blake3Hash, objHasAllProperties,
-    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber
+    strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
+    mergeJSON
 } from "./utils.mjs";
 
 class IAPI {
@@ -46,7 +47,7 @@ class IAPI {
         let promisePool = [];
         for(const element of results){
             let parsedElement = JSON.parse(element);
-            if(parsedElement.statistics.date + userPermissions.flags.cookie_expire_after < this.timestamp()){
+            if(parsedElement.statistics.date + userPermissions.cookie_expire_after < this.timestamp()){
                 promisePool.push(new Promise((resolve, reject) => {
                     this.redis.lrem(redisKey, 0, element, (err, results) => {
                         if(err){
@@ -71,6 +72,30 @@ class IAPI {
             });
         });
     }
+    getRedisKeyIfExists(redisKey){
+        return new Promise((resolve, reject) => {
+            //check if redisKey exists, if yes, get the value of it and return it, if not, return null.
+            this.redis.exists(redisKey, (err, results) => {
+                if(err){
+                    reject(err);
+                    this.log("log", "IAPI", "Failed to check if redis key exists: " + redisKey);
+                }else{
+                    if(results == 1){
+                        this.redis.get(redisKey, (err, results) => {
+                            if(err){
+                                reject(err);
+                                this.log("log", "IAPI", "Failed to get redis key: " + redisKey);
+                            }else{
+                                resolve(results);
+                            }
+                        });
+                    }else{
+                        resolve(null);
+                    }
+                }
+            });
+        });
+    }
     checkIfUserHasSession(uid){
         return new Promise((resolve, reject) => {
             this.redis.lrange(this.rp + ":user_session:" + uid, 0, -1, (err, results) => {
@@ -82,6 +107,7 @@ class IAPI {
             });
         });
     }
+    //Actual service functions
     userLogin(req, username, password) {
         let connIP = this.IP(req);
         let userAgent = req.headers['user-agent'];
@@ -117,8 +143,8 @@ class IAPI {
                                 });
                                 this.redis.lrange(redisKey, 0, -1, (err, results) => {
                                     this.removeExpiredSessions(redisKey, userPermissions, results).then((removedSessions) => {
-                                        if(results.length - removedSessions >= userPermissions.flags.max_session){
-                                            console.log(removedSessions);
+                                        if(results.length - removedSessions >= userPermissions.max_session){
+                                            this.log("debug", "IAPI", "Removed " + removedSessions + " expired sessions from redis");
                                             reject("You have reached the maximum number of sessions.");
                                         }else{
                                             this.redis.lpush(redisKey,finalSession, (err, results) => {
@@ -129,10 +155,8 @@ class IAPI {
                                                     this.log("debug", "IAPI", "Successfully pushed user session to redis, user logged in: " + username + ",results: " + results);
                                                     resolve({
                                                         "uid": user.uid,
-                                                        "permissions": {
-                                                            "role": userRole,
-                                                            "flags": userPermissions.flags.permissions.flags
-                                                        },
+                                                        "role": userRole,
+                                                        "permissions": userPermissions.permissions,
                                                         "token": newToken
                                                     });
                                                 }
@@ -204,10 +228,12 @@ class IAPI {
                                 let defaultPreferences = {
                                     
                                 };
-                                let defaultPermissions = {
-                                    "role": "user",
-                                    "flags": JSON.parse(this.siteConfig.roles_permissions)[this.siteConfig.register_default_role]
-                                }
+                                let defaultPermissions = mergeJSON(
+                                    {
+                                        "role": this.siteConfig.register_default_role
+                                    },
+                                    JSON.parse(this.siteConfig.roles_permissions)[this.siteConfig.register_default_role]
+                                );
                                 try {
                                     this.mysql.query(
                                         "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
