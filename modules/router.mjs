@@ -133,12 +133,31 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
+    blorumRouter.get('/user/permissions', function (req, res) {
+    });
+
     blorumRouter.post('/user/logout', function (req, res) {
+        let b = req.body;
+        res.set("Content-Type","application/json");
+        res.set(commonHeader);
+        if(objHasAllProperties(b, "uid", "token")){
+            iapi.userLogout(req, b.uid, b.token).then(function(result){
+                res.sendStatus(200);
+            }).catch(function(err){
+                res.status(500).send(err);
+            }
+            );
+        }else{
+            res.sendStatus(400);
+        }
+    });
+
+    blorumRouter.post('/user/sessionList', function (req, res) {
     });
 
     blorumRouter.post('/user/invite', function (req, res) {
     });
-
+    
     blorumRouter.post('/user/remove', function (req, res) {
     });
 

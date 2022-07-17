@@ -264,10 +264,40 @@ class IAPI {
             }
         });
     }
-    userLogout(req, token){
-
+    userLogout(req, uid, token){
+        return new Promise((resolve, reject) => {  
+            let promisePool = [];
+            let redisKey = this.rp + ":user_session:" + uid;
+            this.redis.lrange(redisKey, 0, -1, (err, results) => {
+                for(const element of results){
+                    let parsedElement = JSON.parse(element);
+                    if(parsedElement.token === token){
+                        promisePool.push(new Promise((resolve, reject) => {
+                            this.redis.lrem(redisKey, 0, element, (err, results) => {
+                                if(err){
+                                    reject(err);
+                                }else{
+                                    resolve(results);
+                                }
+                            });
+                        }));
+                    }
+                }
+                return Promise.all(promisePool).then((results) => {
+                    if(results.length > 0){
+                        resolve();
+                    }else{
+                        reject("Token not found");
+                    }
+                }).catch((err) => {
+                    reject(err);
+                });
+            }).catch((err) => {
+                reject(err);
+            });
+        });
     }
-
+    //userSessionList(req, uid, token)
 }
 
 export { IAPI };
