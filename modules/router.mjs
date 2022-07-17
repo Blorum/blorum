@@ -10,7 +10,44 @@ import { join } from "path";
 import { default as bodyParser } from "body-parser";
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
+    let getReqInfo = function(req){
+        let ip = null;
+        let ua = null;
+        if(siteConfig.ip_detect_method == "connection"){
+            ip =  req.connection.remoteAddress;
+        }else if(siteConfig.ip_detect_method == "header"){
+            //Default header X-Forwarded-From.
+            if(req.headers.hasOwnProperty(siteConfig.ip_detect_header)){
+                ip = req.headers[siteConfig.ip_detect_header];
+            }else{
+                log("error", "IAPI", "Dictated IP detection method is header, but header is not found.");
+                if(req.headers.hasOwnProperty("X-Forwarded-From")){
+                    ip = req.headers["X-Forwarded-From"];
+                }else if(req.headers.hasOwnProperty("x-forwarded-from")){
+                    ip = req.headers["x-forwarded-from"];
+                }else{
+                    ip = req.connection.remoteAddress;
+                }
+            }
+        }else{
+            log("error", "IAPI", "Dictated IP detection method is not found.");
+            ip = req.connection.remoteAddress;
+        }
+        if(req.headers.hasOwnProperty("user-agent")){
+            ua = req.headers["user-agent"];
+        }else if(req.headers.hasOwnProperty("User-Agent")){
+            ua = req.headers["User-Agent"];
+        }else{
+            ua = "Unknown/0";
+        }
+        return {
+            "ip": ip,
+            "ua": ua
+        }
+    }
+
     const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix);
+    
     let blorumRouter = express();
     let commonHeader = {
         "X-Powered-By": "Blorum",
@@ -90,9 +127,10 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         res.set("Content-Type","application/json");
         res.set(commonHeader);
         let b = req.body;
+        let reqInfo = getReqInfo(req);
         if(objHasAllProperties(b, "username", "password")){
             if(isAllString(b.username, b.password)){
-                iapi.userLogin(req, b.username, b.password).then(function(result){
+                iapi.userLogin(reqInfo.ip, reqInfo.ua, b.username, b.password).then(function(result){
                     res.set(commonHeader);
                     res.status(200).send(result);
                 }).catch(function(err){
@@ -109,15 +147,15 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
 
     blorumRouter.post('/user/register', function (req, res) {
         let b = req.body;
+        let reqInfo = getReqInfo(req);
         if(objHasAllProperties(b, "username", "password", "email")){
             if(isAllString(b.username, b.password, b.email, b.nickname)){
                 try {
                     res.set("Content-Type","application/json");
                     res.set(commonHeader);
-                    iapi.userRegister(req, b.username, b.password, b.email, b.nickname).then(function (result) {
+                    iapi.userRegister(reqInfo.ip, reqInfo.ua, b.username, b.password, b.email, b.nickname).then(function (result) {
                         res.status(200).send(result);
-                    }
-                    ).catch(function (error) {
+                    }).catch(function (error) {
                         log("debug", "Router", "Failed to register user: " + error);
                         res.status(403).send(error);
                     });

@@ -23,26 +23,6 @@ class IAPI {
     timestamp(){
         return new Date().getTime();
     }
-    IP(req) {
-        if(this.siteConfig.ip_detect_method == "connection"){
-            return req.connection.remoteAddress;
-        }else if(this.siteConfig.ip_detect_method == "header"){
-            //Default header X-Forwarded-From.
-            if(req.headers.hasOwnProperty(this.siteConfig.ip_detect_header)){
-                return req.headers[this.siteConfig.ip_detect_header];
-            }else{
-                this.log("error", "IAPI", "Dictated IP detection method is header, but header is not found");
-                if(req.headers.hasOwnProperty("X-Forwarded-From")){
-                    return req.headers["X-Forwarded-From"];
-                }else{
-                    return req.connection.remoteAddress;
-                }
-            }
-        }else{
-            this.log("error", "IAPI", "Dictated IP detection method is not found.");
-            return req.connection.remoteAddress;
-        }
-    }
     removeExpiredSessions(redisKey, userPermissions, results){
         let promisePool = [];
         for(const element of results){
@@ -108,9 +88,7 @@ class IAPI {
         });
     }
     //Actual service functions
-    userLogin(req, username, password) {
-        let connIP = this.IP(req);
-        let userAgent = req.headers['user-agent'];
+    userLogin(ip, ua, username, password) {
         return new Promise((resolve, reject) => {
             password = blake3Hash(this.salt + password);
             this.mysql.query(
@@ -137,8 +115,8 @@ class IAPI {
                                     "permissions": user.permissions,
                                     "statistics": {
                                         "date": this.timestamp(),
-                                        "userAgent": userAgent,
-                                        "ip": connIP
+                                        "userAgent": ua,
+                                        "ip": ip
                                     }
                                 });
                                 this.redis.lrange(redisKey, 0, -1, (err, results) => {
@@ -176,9 +154,7 @@ class IAPI {
             );
         });
     }
-    userRegister(req, username, password, email, nickname) {
-        let connIP = this.IP(req);
-        let userAgent = req.headers['user-agent'];
+    userRegister(ip, ua, username, password, email, nickname) {
         return new Promise((resolve, reject) => {
             if (!basicPasswordRequirement(password)) {
                 reject("Password does not meet basic requirements(> 8 characters, contains at least one number, one letter)");
