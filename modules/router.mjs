@@ -27,6 +27,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     let isTimestampExpired = function(val){
         return val + expireThreshold < timestamp();
     };
+
     let getReqInfo = function(req){
         let ip = null;
         let ua = null;
@@ -57,7 +58,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
             "ip": ip,
             "ua": ua
         }
-    }
+    };
 
     const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix);
     
@@ -76,7 +77,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         process.exit(1);
     }
     
-    let rateControlMiddleware = RCM(log, redisConnection);
+    let rateControlMiddleware = RCM(log, redisConnection, iapi, getReqInfo);
     try {
         blorumRouter.use(rateControlMiddleware);
         log("log", "Router", "Rate control middleware applied.");
@@ -209,19 +210,18 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.post('/user/logout', function (req, res) {
-        let b = req.body;
-        console.log(req.validUserPermissions);
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        if(objHasAllProperties(b, "uid", "token")){
-            iapi.userLogout(req, b.uid, b.token).then(function(result){
+        if(req.isUserSessionValid){
+            res.set(commonHeader);
+            iapi.userLogout(req.validUserID, req.header.token).then(function(result){
+                res.clearCookie('blorum_uid');
+                res.clearCookie('blorum_token');
+                res.clearCookie('blorum_permissions');
                 res.sendStatus(200);
             }).catch(function(err){
                 res.status(500).send(err);
-            }
-            );
+            });
         }else{
-            res.sendStatus(400);
+            res.sendStatus(403);
         }
     });
 

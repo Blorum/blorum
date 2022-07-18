@@ -8,16 +8,17 @@ function SessionCheckMiddleware(log, redis, iapi){
         let cookie = req.header("cookie");
         if(cookie !== undefined){
             let cookieParsed = cookieParser(cookie);
-            if(objHasAllProperties(cookieParsed, "blorum_uid", "blorum_token")){       
+            if(objHasAllProperties(cookieParsed, "blorum_uid", "blorum_token")){
                 let uid = cookieParsed.blorum_uid;
                 let token = decodeURIComponent(cookieParsed.blorum_token);
-                iapi.checkIfUserHasSession(uid).then(function(result){
+                req.header.token = token;
+                iapi.getValidUserSession(uid).then(function(result){
                     if(result.length > 0){
                         for(const element of result){
                             let parsedElement = JSON.parse(element);
                             if(parsedElement.token === token){
                                 req.isUserSessionValid = true;
-                                req.validUserId = uid;
+                                req.validUserID = uid;
                             }
                         }
                     }else{
@@ -28,15 +29,18 @@ function SessionCheckMiddleware(log, redis, iapi){
                             req.validUserPermissions = result;
                             next();
                         }).catch(function(err){
-                            this.log("error", "SessionCheck", "UID: " + uid + " permissions retrieve failed: " + err);
+                            log("error", "SessionCheck", "UID: " + uid + " permissions retrieve failed: " + err);
                             next();
                         });
+                    }else{
+                        next();
                     }
                 }).catch(function(err){
                     req.isUserSessionValid = false;
-                    this.log("error", "SessionCheck", "Failed to check if user has session.");
-                    this.log("error", "SessionCheck", err);
+                    log("error", "SessionCheck", "Failed to check if user has session.");
+                    log("error", "SessionCheck", err);
                     next();
+                    throw err;
                 });
             }else{
                 req.isUserSessionValid = false;

@@ -23,35 +23,7 @@ class IAPI {
     timestamp(){
         return new Date().getTime();
     }
-    removeExpiredSessions(redisKey, userPermissions, results){
-        let promisePool = [];
-        for(const element of results){
-            let parsedElement = JSON.parse(element);
-            if(parsedElement.statistics.date + userPermissions.cookie_expire_after < this.timestamp()){
-                promisePool.push(new Promise((resolve, reject) => {
-                    this.redis.lrem(redisKey, 0, element, (err, results) => {
-                        if(err){
-                            reject(err);
-                            this.log("log", "IAPI", "Failed to remove expired session from redis");
-                        }else{
-                            resolve(results);
-                        }
-                    });
-                }));
-            }
-        }
-        return new Promise((resolve, reject) => {
-            Promise.all(promisePool).then((results) => {
-                let totalRemovedSessions = 0;
-                for(const element of results){
-                    totalRemovedSessions += element;
-                }
-                resolve(totalRemovedSessions);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
-    }
+
     getRedisKeyIfExists(redisKey){
         return new Promise((resolve, reject) => {
             //check if redisKey exists, if yes, get the value of it and return it, if not, return null.
@@ -76,7 +48,37 @@ class IAPI {
             });
         });
     }
-    checkIfUserHasSession(uid){
+    removeExpiredSessions(uid, expireAfter, results){
+        let redisKey = this.rp + ":user_session:" + uid;
+        let promisePool = [];
+        for(const element of results){
+            let parsedElement = JSON.parse(element);
+            if(parsedElement.statistics.date + expireAfter < this.timestamp()){
+                promisePool.push(new Promise((resolve, reject) => {
+                    this.redis.lrem(redisKey, 0, element, (err, results) => {
+                        if(err){
+                            reject(err);
+                            this.log("log", "IAPI", "Failed to remove expired session from redis");
+                        }else{
+                            resolve(results);
+                        }
+                    });
+                }));
+            }
+        }
+        return new Promise((resolve, reject) => {
+            Promise.all(promisePool).then((results) => {
+                let totalRemovedSessions = 0;
+                for(const element of results){
+                    totalRemovedSessions += element;
+                }
+                resolve(totalRemovedSessions);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+    getUserSession(uid){
         return new Promise((resolve, reject) => {
             this.redis.lrange(this.rp + ":user_session:" + uid, 0, -1, (err, results) => {
                 if(err){
@@ -85,6 +87,28 @@ class IAPI {
                     resolve(results);
                 }
             });
+        });
+    }
+    getValidUserSession(uid){
+        return new Promise(async (resolve, reject) => {
+            try {
+                let currentSessions = await this.getUserSession(uid);
+                if(currentSessions.length > 0){
+                    let userPermissions = await this.getUserPermissions(uid);
+                    let removedSessionsCount = await this.removeExpiredSessions(uid, userPermissions.cookie_expire_after, currentSessions);
+                    let finalSessions = await this.getUserSession(uid);
+                    if(finalSessions.length > 0){
+                        resolve(finalSessions);
+                    }else{
+                        resolve([]);
+                    }
+                }else{
+                    resolve([]);
+                }
+
+            } catch (error) {
+                reject(error);
+            }
         });
     }
     //Actual service functions
@@ -109,7 +133,7 @@ class IAPI {
                                 let userPermissions = user.permissions;
                                 let userRole = userPermissions.role;
                                 let redisKey = this.rp + ":user_session:" + user.uid;
-                                let cookieExpireAfter = this.rolePermissions[userRole].cookie_expire_after;
+                                let cookieExpireAfter = userPermissions.cookie_expire_after;
                                 let permissionsRedisKey = this.rp + ":user_permissions:" + user.uid;
                                 this.redis.set(permissionsRedisKey, JSON.stringify(userPermissions), (err, results) => {
                                     if (err) {
@@ -134,7 +158,7 @@ class IAPI {
                                     }
                                 });
                                 this.redis.lrange(redisKey, 0, -1, (err, results) => {
-                                    this.removeExpiredSessions(redisKey, userPermissions, results).then((removedSessions) => {
+                                    this.removeExpiredSessions(user.uid, userPermissions.cookie_expire_after, results).then((removedSessions) => {
                                         if(results.length - removedSessions >= userPermissions.max_session){
                                             this.log("debug", "IAPI", "Removed " + removedSessions + " expired sessions from redis");
                                             reject("You have reached the maximum number of sessions.");
@@ -254,7 +278,7 @@ class IAPI {
             }
         });
     }
-    userLogout(req, uid, token){
+    userLogout(uid, token){
         return new Promise((resolve, reject) => {  
             let promisePool = [];
             let redisKey = this.rp + ":user_session:" + uid;
@@ -290,39 +314,28 @@ class IAPI {
     getUserPermissions(uid){
         return new Promise((resolve, reject) => {
             let redisKey = this.rp + ":user_permissions:" + uid;
-            //check if redisKey exists in redis
-            this.redis.exists(redisKey, (err, results) => {
-                if(err){
-                    reject(err);
-                }else{
-                    if(results === 1){
-                        this.redis.get(redisKey, (err, results) => {
-                            if(err){
-                                this.log("debug", "IAPI", "Failed to get user permissions from redis.");
-                                this.mysql.query(
-                                    "SELECT permissions FROM users WHERE uid = ?",
-                                    [uid],
-                                    (err, results) => {
-                                        console.log(results);
-                                        if(err){
-                                            this.log("debug", "IAPI", "Failed to query database.");
-                                            reject(err);
-                                        }else{
-                                            if(results.length === 0){
-                                                this.log("debug", "IAPI", "User not found in database.");
-                                                reject("User not found");
-                                            }else{
-                                                resolve(results[0]);
-                                            }
-                                        }
-                                    }
-                                );
+            this.getRedisKeyIfExists(redisKey).then((results) => {
+                resolve(JSON.parse(results));
+            }).catch((err) => {
+                this.log("debug", "IAPI", "Failed to get user permissions from redis.");
+                this.mysql.query(
+                    "SELECT permissions FROM users WHERE uid = ?",
+                    [uid],
+                    (err, results) => {
+                        console.log(results);
+                        if(err){
+                            this.log("debug", "IAPI", "Failed to query database.");
+                            reject(err);
+                        }else{
+                            if(results.length === 0){
+                                this.log("debug", "IAPI", "User not found in database.");
+                                reject("User not found");
                             }else{
-                                resolve(JSON.parse(results));
+                                resolve(results[0]);
                             }
-                        });
+                        }
                     }
-                }
+                );
             });
         });
     }

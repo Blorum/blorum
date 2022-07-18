@@ -2,7 +2,7 @@ import { default as blake3 } from "blake3";
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 
-const version = "1.0.0 in_dev (unf, debug) dv 10004";
+const version = "1.0.0 in_dev (unf, debug) dv 10005";
 
 const c = {
     "reset": "\x1b[0m",
@@ -165,7 +165,6 @@ function cookieParser(raw){
     }
     return cookie;
 }
-
 
 export { 
     version, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
