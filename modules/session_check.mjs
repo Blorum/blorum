@@ -10,9 +10,9 @@ function SessionCheckMiddleware(log, redis, iapi){
             let cookieParsed = cookieParser(cookie);
             if(objHasAllProperties(cookieParsed, "blorum_uid", "blorum_token")){       
                 let uid = cookieParsed.blorum_uid;
-                let token = cookieParsed.blorum_token;
+                let token = decodeURIComponent(cookieParsed.blorum_token);
                 iapi.checkIfUserHasSession(uid).then(function(result){
-                    if(result >= 0){
+                    if(result.length > 0){
                         for(const element of result){
                             let parsedElement = JSON.parse(element);
                             if(parsedElement.token === token){
@@ -23,16 +23,28 @@ function SessionCheckMiddleware(log, redis, iapi){
                     }else{
                         req.isUserSessionValid = false;
                     }
+                    if(req.isUserSessionValid){
+                        iapi.getUserPermissions(uid).then(function(result){
+                            req.validUserPermissions = result;
+                            next();
+                        }).catch(function(err){
+                            this.log("error", "SessionCheck", "UID: " + uid + " permissions retrieve failed: " + err);
+                            next();
+                        });
+                    }
                 }).catch(function(err){
                     req.isUserSessionValid = false;
                     this.log("error", "SessionCheck", "Failed to check if user has session.");
                     this.log("error", "SessionCheck", err);
+                    next();
                 });
             }else{
                 req.isUserSessionValid = false;
+                next();
             }
+        }else{
+            next();
         }
-        next();
     }
 }
 

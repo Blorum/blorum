@@ -210,6 +210,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
 
     blorumRouter.post('/user/logout', function (req, res) {
         let b = req.body;
+        console.log(req.validUserPermissions);
         res.set("Content-Type","application/json");
         res.set(commonHeader);
         if(objHasAllProperties(b, "uid", "token")){
