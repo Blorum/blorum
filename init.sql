@@ -68,6 +68,12 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 				"react": Infinity,
 				"comment": Infinity
 			},
+			"edit": {
+				"article": Infinity,
+				"post": Infinity,
+				"react": Infinity,
+				"comment": Infinity
+			},
 			"login": Infinity
 		},
 		"cookie_expire_after": 13150000000,
@@ -85,6 +91,12 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 				"comment": 120
 			},
 			"remove": {
+				"article": 60,
+				"post": 60,
+				"react": 120,
+				"comment": 120
+			},
+			"edit": {
 				"article": 60,
 				"post": 60,
 				"react": 120,
@@ -112,6 +124,12 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 				"react": 240,
 				"comment": 240
 			},
+			"edit": {
+				"article": 0,
+				"post": 100,
+				"react": 240,
+				"comment": 240
+			},
 			"login": 20
 		},
 		"cookie_expire_after": 13150000000,
@@ -129,6 +147,12 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 				"comment": 60
 			},
 			"remove": {
+				"article": 1,
+				"post": 15,
+				"react": 240,
+				"comment": 360
+			},
+			"edit": {
 				"article": 1,
 				"post": 15,
 				"react": 240,
@@ -156,6 +180,12 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 				"react": 30,
 				"comment": 30
 			},
+			"edit": {
+				"article": 5,
+				"post": 10,
+				"react": 30,
+				"comment": 30
+			},
 			"login": 20
 		},
 		"cookie_expire_after": 2630000000,
@@ -173,6 +203,12 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 				"comment": 24
 			},
 			"remove": {
+				"article": 0,
+				"post": 10,
+				"react": 30,
+				"comment": 24
+			},
+			"edit": {
 				"article": 0,
 				"post": 10,
 				"react": 30,

@@ -13,22 +13,6 @@ import { default as SCM } from "./session_check.mjs";
 import { get } from "http";
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
-    let ipWhiteList = siteConfig.ip_rate_limit_bypass_whitelist;
-    let ipRateLimits = {
-        "create": JSON.parse(siteConfig.ip_rate_limit_create),
-        "remove": JSON.parse(siteConfig.ip_rate_limit_remove),
-        "edit": JSON.parse(siteConfig.ip_rate_limit_edit),
-        "login": siteConfig.ip_rate_limit_login,
-        "get": siteConfig.ip_rate_limit_get
-    };
-    let timestamp = function(){
-        return new Date().getTime();
-    };
-    let expireThreshold = 3600000;
-    let isTimestampExpired = function(val){
-        return val + expireThreshold < timestamp();
-    };
-
     let getReqInfo = function(req){
         let ip = null;
         let ua = null;
@@ -78,7 +62,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         process.exit(1);
     }
     
-    let rateControlMiddleware = RCM(log, redisConnection, iapi, getReqInfo);
+    let rateControlMiddleware = RCM(log, redisConnection, siteConfig, iapi, getReqInfo);
     try {
         blorumRouter.use(rateControlMiddleware);
         log("log", "Router", "Rate control middleware applied.");
@@ -88,10 +72,10 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
 
     blorumRouter.use(bodyParser.json({limit: '50mb'}));
     blorumRouter.use(function(err, req, res, next){
-        if (err instanceof SyntaxError) {
+        if(err instanceof SyntaxError) {
             res.set(commonHeader);
             res.sendStatus(400);
-        } else {
+        }else{
             next();
         }
     });
@@ -176,7 +160,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                     let parsedPermission = ""; //Todo
                     res.cookie("blorum_uid", result.uid, {httpOnly: true});
                     res.cookie("blorum_token", result.token, {httpOnly: true});
-                    res.cookie("blorum_permissions", parsedPermission, {httpOnly: true});
+                    res.cookie("blorum_permissions", parsedPermission);
                     res.status(200).send(result);
                 }).catch(function(err){
                     res.set(commonHeader);

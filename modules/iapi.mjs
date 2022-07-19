@@ -42,7 +42,7 @@ class IAPI {
                             }
                         });
                     }else{
-                        reject("Redis key not found");
+                        resolve(null);
                     }
                 }
             });
@@ -119,6 +119,33 @@ class IAPI {
             }
         });
     }
+    getUserPermissions(uid){
+        return new Promise((resolve, reject) => {
+            let redisKey = this.rp + ":user_permissions:" + uid;
+            this.getRedisKeyIfExists(redisKey).then((results) => {
+                resolve(JSON.parse(results));
+            }).catch((err) => {
+                this.log("debug", "IAPI", "Failed to get user permissions from redis.");
+                this.mysql.query(
+                    "SELECT permissions FROM users WHERE uid = ?",
+                    [uid],
+                    (err, results) => {
+                        if(err){
+                            this.log("debug", "IAPI", "Failed to query database.");
+                            reject(err);
+                        }else{
+                            if(results.length === 0){
+                                this.log("debug", "IAPI", "User not found in database.");
+                                reject("User not found");
+                            }else{
+                                resolve(results[0].permissions);
+                            }
+                        }
+                    }
+                );
+            });
+        });
+    }
     //Actual service functions
     userLogin(ip, ua, username, password) {
         return new Promise((resolve, reject) => {
@@ -139,10 +166,13 @@ class IAPI {
                             if (user.password === password) {
                                 let newToken = generateNewToken(this.salt, username);
                                 let userPermissions = user.permissions;
+                                let rateLimitPrototype = user.permissions.rate_limits;
+                                rateLimitPrototype.timestamp = this.timestamp();
                                 let userRole = userPermissions.role;
                                 let redisKey = this.rp + ":user_session:" + user.uid;
                                 let cookieExpireAfter = JSON.parse(this.siteConfig["roles_permissions"])[userRole]["cookie_expire_after"];
                                 let permissionsRedisKey = this.rp + ":user_permissions:" + user.uid;
+                                let tokenBucketRedisKey = this.rp + ":user_token_bucket:" + user.uid;
                                 this.redis.set(permissionsRedisKey, JSON.stringify(userPermissions), (err, results) => {
                                     if (err) {
                                         this.log("debug", "IAPI", "Failed to set redis key: " + permissionsRedisKey);
@@ -157,6 +187,20 @@ class IAPI {
                                     }
                                 });
 
+                                this.redis.set(tokenBucketRedisKey, JSON.stringify(rateLimitPrototype), (err, results) => {
+                                    if (err) {
+                                        this.log("debug", "IAPI", "Failed to set redis key: " + tokenBucketRedisKey);
+                                        reject(err);
+                                    } else {
+                                        this.redis.pexpire(tokenBucketRedisKey, cookieExpireAfter, (err, results) => {
+                                            if (err) {
+                                                this.log("debug", "IAPI", "Failed to set redis key expire: " + tokenBucketRedisKey);
+                                                reject(err);
+                                            }
+                                        });
+                                    }
+                                });
+                                
                                 let finalSession = JSON.stringify({
                                     "token": newToken,
                                     "statistics": {
@@ -321,33 +365,7 @@ class IAPI {
             });
         });
     }
-    getUserPermissions(uid){
-        return new Promise((resolve, reject) => {
-            let redisKey = this.rp + ":user_permissions:" + uid;
-            this.getRedisKeyIfExists(redisKey).then((results) => {
-                resolve(JSON.parse(results));
-            }).catch((err) => {
-                this.log("debug", "IAPI", "Failed to get user permissions from redis.");
-                this.mysql.query(
-                    "SELECT permissions FROM users WHERE uid = ?",
-                    [uid],
-                    (err, results) => {
-                        if(err){
-                            this.log("debug", "IAPI", "Failed to query database.");
-                            reject(err);
-                        }else{
-                            if(results.length === 0){
-                                this.log("debug", "IAPI", "User not found in database.");
-                                reject("User not found");
-                            }else{
-                                resolve(results[0].permissions);
-                            }
-                        }
-                    }
-                );
-            });
-        });
-    }
+
     //userSessionList(req, uid, token)
 }
 

@@ -6,6 +6,7 @@ function SessionCheckMiddleware(log, redis, iapi){
     this.iapi = iapi;
     this.middleware = function(req, res, next){
         let cookie = req.header("cookie");
+        req.isUserSessionValid = false;
         if(cookie !== undefined){
             let cookieParsed = cookieParser(cookie);
             if(objHasAllProperties(cookieParsed, "blorum_uid", "blorum_token")){
@@ -21,22 +22,18 @@ function SessionCheckMiddleware(log, redis, iapi){
                                 req.validUserID = uid;
                             }
                         }
-                    }else{
-                        req.isUserSessionValid = false;
                     }
                     if(req.isUserSessionValid){
                         req.validUserPermissions = result.permissions;
                     }
                     next();
                 }).catch(function(err){
-                    req.isUserSessionValid = false;
                     log("error", "SessionCheck", "Failed to check if user has session.");
                     log("error", "SessionCheck", err);
                     next();
                     throw err;
                 });
             }else{
-                req.isUserSessionValid = false;
                 next();
             }
         }else{
