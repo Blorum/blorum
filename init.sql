@@ -1,5 +1,6 @@
 /*Default Blorum site config SQL*/
-
+use blorum;
+truncate config;
 /*True/False Flags*/
 INSERT INTO `config`(`flag`, `value`) VALUES ("allowed_register","true");
 INSERT INTO `config`(`flag`, `value`) VALUES ("allowed_login","true");
@@ -69,7 +70,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 			},
 			"login": Infinity
 		},
-		"cookie_expire_after": 13150000,
+		"cookie_expire_after": 13150000000,
 		"max_session": 10
 	},
 	"moderator": {
@@ -91,7 +92,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 			},
 			"login": 20
 		},
-		"cookie_expire_after":  13150000,
+		"cookie_expire_after":  13150000000,
 		"max_session": 10
 	},
 	"forum_admin": {
@@ -113,7 +114,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 			},
 			"login": 20
 		},
-		"cookie_expire_after": 13150000,
+		"cookie_expire_after": 13150000000,
 		"max_session": 10
 	},
 	"auditor": {
@@ -135,7 +136,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 			},
 			"login": 20
 		},
-		"cookie_expire_after": 13150000,
+		"cookie_expire_after": 13150000000,
 		"max_session": 10
 	},
 	"writer": {
@@ -157,7 +158,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 			},
 			"login": 20
 		},
-		"cookie_expire_after": 2630000,
+		"cookie_expire_after": 2630000000,
 		"max_session": 10
 	},
 	"user": {
@@ -179,7 +180,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("roles_permissions",'{
 			},
 			"login": 20
 		},
-		"cookie_expire_after": 2630000,
+		"cookie_expire_after": 2630000000,
 		"max_session": 8
 	}
 }

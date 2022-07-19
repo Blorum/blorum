@@ -42,7 +42,7 @@ class IAPI {
                             }
                         });
                     }else{
-                        resolve(null);
+                        reject("Redis key not found");
                     }
                 }
             });
@@ -95,15 +95,23 @@ class IAPI {
                 let currentSessions = await this.getUserSession(uid);
                 if(currentSessions.length > 0){
                     let userPermissions = await this.getUserPermissions(uid);
-                    let removedSessionsCount = await this.removeExpiredSessions(uid, userPermissions.cookie_expire_after, currentSessions);
+                    let removedSessionsCount = await this.removeExpiredSessions(uid, JSON.parse(this.siteConfig["roles_permissions"])[userPermissions.role]["cookie_expire_after"], currentSessions);
                     let finalSessions = await this.getUserSession(uid);
                     if(finalSessions.length > 0){
-                        resolve(finalSessions);
+                        resolve({
+                            "sessions": finalSessions,
+                            "permissions": userPermissions,
+                            "removed_sessions": removedSessionsCount
+                        });
                     }else{
-                        resolve([]);
+                        resolve({
+                            "sessions": []
+                        });
                     }
                 }else{
-                    resolve([]);
+                    resolve({
+                        "sessions": []
+                    });
                 }
 
             } catch (error) {
@@ -133,14 +141,14 @@ class IAPI {
                                 let userPermissions = user.permissions;
                                 let userRole = userPermissions.role;
                                 let redisKey = this.rp + ":user_session:" + user.uid;
-                                let cookieExpireAfter = userPermissions.cookie_expire_after;
+                                let cookieExpireAfter = JSON.parse(this.siteConfig["roles_permissions"])[userRole]["cookie_expire_after"];
                                 let permissionsRedisKey = this.rp + ":user_permissions:" + user.uid;
                                 this.redis.set(permissionsRedisKey, JSON.stringify(userPermissions), (err, results) => {
                                     if (err) {
                                         this.log("debug", "IAPI", "Failed to set redis key: " + permissionsRedisKey);
                                         reject(err);
                                     } else {
-                                        this.redis.expire(permissionsRedisKey, cookieExpireAfter, (err, results) => {
+                                        this.redis.pexpire(permissionsRedisKey, cookieExpireAfter, (err, results) => {
                                             if (err) {
                                                 this.log("debug", "IAPI", "Failed to set redis key expire: " + permissionsRedisKey);
                                                 reject(err);
@@ -242,11 +250,13 @@ class IAPI {
                                 let defaultPreferences = {
                                     
                                 };
+                                let defaultRolePermissions = JSON.parse(this.siteConfig.roles_permissions)[this.siteConfig.register_default_role];
+                                delete defaultRolePermissions["cookie_expire_after"];
                                 let defaultPermissions = mergeJSON(
                                     {
                                         "role": this.siteConfig.register_default_role
                                     },
-                                    JSON.parse(this.siteConfig.roles_permissions)[this.siteConfig.register_default_role]
+                                    defaultRolePermissions
                                 );
                                 try {
                                     this.mysql.query(
@@ -322,7 +332,6 @@ class IAPI {
                     "SELECT permissions FROM users WHERE uid = ?",
                     [uid],
                     (err, results) => {
-                        console.log(results);
                         if(err){
                             this.log("debug", "IAPI", "Failed to query database.");
                             reject(err);
@@ -331,7 +340,7 @@ class IAPI {
                                 this.log("debug", "IAPI", "User not found in database.");
                                 reject("User not found");
                             }else{
-                                resolve(results[0]);
+                                resolve(results[0].permissions);
                             }
                         }
                     }

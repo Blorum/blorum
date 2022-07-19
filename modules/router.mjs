@@ -10,6 +10,7 @@ import { join } from "path";
 import { default as bodyParser } from "body-parser";
 import { default as RCM } from "./rate_control.mjs";
 import { default as SCM } from "./session_check.mjs";
+import { get } from "http";
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
     let ipWhiteList = siteConfig.ip_rate_limit_bypass_whitelist;
@@ -95,7 +96,16 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
-
+    blorumRouter.get('/debug', function(req, res){
+        if(req.isUserSessionValid){
+            console.log(req.isUserSessionValid);
+            console.log(req.validUserID);
+            console.log(req.validUserPermissions);
+            console.log(getReqInfo(req));
+        }
+        res.set(commonHeader);
+        res.sendStatus(200);
+    });
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
@@ -192,7 +202,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                         res.status(200).send(result);
                     }).catch(function (error) {
                         log("debug", "Router", "Failed to register user: " + error);
-                        res.status(403).send(error);
+                        res.sendStatus(500);
                     });
                 } catch (error) {
                     log("debug", "Router", "Failed to register user: " + error);
@@ -221,7 +231,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                 res.status(500).send(err);
             });
         }else{
-            res.sendStatus(403);
+            res.sendStatus(401);
         }
     });
 
