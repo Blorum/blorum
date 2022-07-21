@@ -1,3 +1,4 @@
+import { pathConvert } from "./utils.mjs";
 function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo){
     this.log = log;
     this.redis = redis;
@@ -11,6 +12,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo){
         "edit": siteConfig.ip_rate_limit_edit,
         "login": siteConfig.ip_rate_limit_login
     };
+    this.pathConvert = pathConvert;
     this.timestamp = function(){
         return new Date().getTime();
     };
@@ -18,26 +20,40 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo){
     this.isTimestampExpired = function(val){
         return val + expireThreshold < timestamp();
     };
-    this.middleware = async function(req, res, next){
+    this.middleware = async (req, res, next) => {
         let reqInfo = getReqInfo(req);
         if(req.isUserSessionValid){
             let uid = req.validUserId;
             let rate_limits = req.validUserPermissions.rate_limits;
             next(); //To be deleted;
         }else{
-            let redisKey = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
-            try {
-                let result = await iapi.getRedisKeyIfExists(reqInfo.ip);
-                if(result !== null){
-
-                }else{
-
-                }
-                next(); //To be deleted;
-            } catch (error) {
-                log("error", "SessionCheck", error);
-                res.sendStatus(500);
+            if(reqInfo.ip.substring(0, 7) === "::ffff:"){
+                reqInfo.ip = reqInfo.ip.substring(7, reqInfo.ip.length);
             }
+            //temp disable ipWhiteList for debug purposes.
+            // if(this.ipWhiteList.indexOf(reqInfo)){
+            //     next();
+            // }else{
+                let redisKey = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
+                try {
+                    let result = await iapi.getRedisKeyIfExists(redisKey);
+                    if(result !== null){
+                        next();//To be deleted;
+                    }else{
+                        redis.set(redisKey, JSON.stringify(this.ipRateLimits), "EX", this.expireThreshold, 
+                        (err, res) => {
+                            if(err){
+                                res.status(500).send("Redis is down!");
+                            }else{
+                                next();
+                            }
+                        });
+                    }
+                } catch (error) {
+                    log("error", "SessionCheck", error);
+                    res.sendStatus(500);
+                }
+            // }
         }
     }
 }

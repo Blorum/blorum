@@ -166,9 +166,13 @@ function cookieParser(raw){
     return cookie;
 }
 
+let pathConvert = {
+
+};
+
 export { 
     version, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser, pathConvert
 };

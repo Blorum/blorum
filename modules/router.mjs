@@ -186,7 +186,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                         res.status(200).send(result);
                     }).catch(function (error) {
                         log("debug", "Router", "Failed to register user: " + error);
-                        res.sendStatus(500);
+                        res.status(500).send(error);
                     });
                 } catch (error) {
                     log("debug", "Router", "Failed to register user: " + error);
