@@ -16,7 +16,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("site_excerpt","This is a Blorum s
 INSERT INTO `config`(`flag`, `value`) VALUES ("site_logo","/favicon.ico");
 INSERT INTO `config`(`flag`, `value`) VALUES ("default_avatar","/statics/avatar.png");
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_method","connection");
-INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_header","X-Forwarded-From");
+INSERT INTO `config`(`flag`, `value`) VALUES ("ip_detect_header","X-Forwarded-For");
 
 INSERT INTO `config`(`flag`, `value`) VALUES ("ip_rate_limit_create",'{
 	"article": 12,

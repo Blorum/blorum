@@ -19,13 +19,13 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         if(siteConfig.ip_detect_method == "connection"){
             ip =  req.connection.remoteAddress;
         }else if(siteConfig.ip_detect_method == "header"){
-            //Default header X-Forwarded-From.
+            //Default header X-Forwarded-For.
             if(req.headers.hasOwnProperty(siteConfig.ip_detect_header)){
                 ip = req.headers[siteConfig.ip_detect_header];
             }else{
                 log("error", "IAPI", "Dictated IP detection method is header, but header is not found.");
-                if(req.headers.hasOwnProperty("x-forwarded-from")){
-                    ip = req.headers["x-forwarded-from"];
+                if(req.headers.hasOwnProperty("x-forwarded-for")){
+                    ip = req.headers["x-forwarded-for"];
                 }else{
                     ip = req.connection.remoteAddress;
                 }
