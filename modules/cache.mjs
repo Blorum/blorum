@@ -1,11 +1,13 @@
-function CacheMiddleware(log, redisConnection, siteConfig, iapi, getReqInfo){
+function CacheMiddleware(log, redisConnection, mysqlConnection, siteConfig, iapi){
 
-
+    this.middleware = (req, res, next) => {
+        next();
+    };
 }
 
-export default function(log, redisConnection, siteConfig, iapi, getReqInfo){
+export default function(log, redisConnection, mysqlConnection, siteConfig, iapi){
     try{
-        let middleware = new CacheMiddleware(log, redisConnection, siteConfig, iapi, getReqInfo).middleware;
+        let middleware = new CacheMiddleware(log, redisConnection, mysqlConnection, siteConfig, iapi).middleware;
         log("log", "CacheStrategy", "Cache strategy middleware instance created.");
         return middleware;
     }catch(err){

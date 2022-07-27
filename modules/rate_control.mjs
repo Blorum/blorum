@@ -38,15 +38,15 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
             // if(this.ipWhiteList.indexOf(reqInfo)){
             //     next();
             // }else{
-                let redisKey = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
+                let redisKeyIT = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
                 try {
-                    let result = await iapi.getRedisKeyIfExists(redisKey);
+                    let result = await iapi.getRedisKeyIfExists(redisKeyIT);
                     if(result !== null){
-                        let tokenBucket = JSON.parse(result);
+                        let IPTokenBucket = JSON.parse(result);
                         next();//To be deleted;
                     }else{
                         let newBucket = this.ipRateLimits;
-                        this.redis.set(redisKey, JSON.stringify(newBucket), "PX", this.expireThreshold,
+                        this.redis.set(redisKeyIT, JSON.stringify(newBucket), "PX", this.expireThreshold,
                             (err, res) => {
                                 if(err){
                                     res.status(500).send("Redis is down!");
@@ -61,7 +61,25 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                 }
             // }
         } else {
-            let redisKey = iapi.rp + ":user_token_bucket:" + reqInfo.uid;
+            let redisKeyUT = iapi.rp + ":user_token_bucket:" + reqInfo.uid;
+            try {
+                let result = await iapi.getRedisKeyIfExists(redisKeyUT);
+                if(result !== null){
+                    let userTokenBucket = JSON.parse(result);
+                    next();//To be deleted;
+                }else{
+                    this.redis.set(redisKeyUT, req.validUserPermissions.rate_limits, "PX", req.validUserPermissions.cookie_expire_after, (err, res) => {
+                        if(err){
+                            res.status(500).send("Redis is down!");
+                        }else{
+                            next();
+                        }
+                    });
+                }
+            } catch (error) {
+                this.log("error", "SessionCheck", error);
+                res.sendStatus(500);
+            }
             next(); //To be deleted;
         }
     }

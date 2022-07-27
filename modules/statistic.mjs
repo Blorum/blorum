@@ -1,11 +1,13 @@
-function StatisticsMiddleware(log, redisConnection, siteConfig, iapi, getReqInfo){
+function StatisticsMiddleware(log, redisConnection, mysqlConnection, siteConfig, iapi, getReqInfo){
 
-
+    this.middleware = (req, res, next) => {
+        next();
+    };
 }
 
-export default function(log, redisConnection, siteConfig, iapi, getReqInfo){
+export default function(log, redisConnection, mysqlConnection, siteConfig, iapi, getReqInfo){
     try{
-        let middleware = new StatisticsMiddleware(log, redisConnection, siteConfig, iapi, getReqInfo).middleware;
+        let middleware = new StatisticsMiddleware(log, redisConnection, mysqlConnection, siteConfig, iapi, getReqInfo).middleware;
         log("log", "Statistics", "Statistics middleware instance created.");
         return middleware;
     }catch(err){

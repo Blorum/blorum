@@ -2,7 +2,7 @@ import parse from "json5";
 JSON.parse = parse.parse;
 
 import {default as express} from "express";
-import { version, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
+import { version, innerVersion, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
 import { IAPI } from "./iapi.mjs";
 import { default as fs } from "fs";
 import { fileURLToPath } from "url";
@@ -10,7 +10,8 @@ import { join } from "path";
 import { default as bodyParser } from "body-parser";
 import { default as RCM } from "./rate_control.mjs";
 import { default as SCM } from "./session_check.mjs";
-import { get } from "http";
+import { default as STM } from "./statistic.mjs";
+import { default as CSM } from "./cache.mjs";
 
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
     let getReqInfo = function(req){
@@ -54,20 +55,34 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     };
 
     let sessionCheckMiddleware = SCM(log, redisConnection, iapi);
+    let rateControlMiddleware = RCM(log, redisConnection, siteConfig, iapi, getReqInfo);
+    let statisticsMiddleware = STM(log, redisConnection, mysqlConnection, siteConfig, iapi, getReqInfo);
+    let cacheMiddleware = CSM(log, redisConnection, mysqlConnection, siteConfig, iapi);
+
     try {
         blorumRouter.use(sessionCheckMiddleware);
-        log("log", "Router", "Session check middleware applied.");
+        log("log", "Router/MW", "Session check middleware applied.");
     } catch (error) {
-        log("log", "Router", "Failed to apply session check middleware.");
+        log("log", "Router/MW", "Failed to apply session check middleware.");
         process.exit(1);
     }
-    
-    let rateControlMiddleware = RCM(log, redisConnection, siteConfig, iapi, getReqInfo);
     try {
         blorumRouter.use(rateControlMiddleware);
-        log("log", "Router", "Rate control middleware applied.");
+        log("log", "Router/MW", "Rate control middleware applied.");
     } catch (error) {
-        log("log", "Router", "Failed to apply rate control middleware.");
+        log("log", "Router/MW", "Failed to apply rate control middleware.");
+    }
+    try {
+        blorumRouter.use(statisticsMiddleware);
+        log("log", "Router/MW", "Statistics middleware applied.");
+    } catch (error) {
+        log("log", "Router/MW", "Failed to apply statistics middleware.");
+    }
+    try {
+        blorumRouter.use(cacheMiddleware);
+        log("log", "Router/MW", "Cache strategy middleware applied.");
+    } catch (error) {
+        log("log", "Router/MW", "Failed to apply cache strategy middleware.");
     }
 
     blorumRouter.use(bodyParser.json({limit: '50mb'}));
@@ -93,7 +108,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
-        res.status(200).send({"server": "blorum", "version": version});
+        res.status(200).send({"server": "blorum", "version": version, "stamp": innerVersion});
     });
 
     //Static file serving
