@@ -25,8 +25,17 @@ function SessionCheckMiddleware(log, redis, iapi){
                     }
                     if(req.isUserSessionValid){
                         req.validUserPermissions = result.permissions;
+                        next();
+                    }else{
+                        if(req.path != "/user/login" && req.path != "/user/logout"){
+                            res.clearCookie('blorum_uid');
+                            res.clearCookie('blorum_token');
+                            res.clearCookie('blorum_permissions');
+                            res.status(412).send("Invalid(expired) session.");
+                        }else{
+                            next();
+                        }
                     }
-                    next();
                 }).catch(function(err){
                     log("error", "SessionCheck", "Failed to check if user has session.");
                     log("error", "SessionCheck", err);

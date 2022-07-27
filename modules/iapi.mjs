@@ -167,7 +167,6 @@ class IAPI {
                                 let newToken = generateNewToken(this.salt, username);
                                 let userPermissions = user.permissions;
                                 let rateLimitPrototype = user.permissions.rate_limits;
-                                rateLimitPrototype.timestamp = this.timestamp();
                                 let userRole = userPermissions.role;
                                 let redisKey = this.rp + ":user_session:" + user.uid;
                                 let cookieExpireAfter = JSON.parse(this.siteConfig["roles_permissions"])[userRole]["cookie_expire_after"];
@@ -186,21 +185,30 @@ class IAPI {
                                         });
                                     }
                                 });
-
-                                this.redis.set(tokenBucketRedisKey, JSON.stringify(rateLimitPrototype), (err, results) => {
-                                    if (err) {
-                                        this.log("debug", "IAPI", "Failed to set redis key: " + tokenBucketRedisKey);
+                                
+                                this.redis.exists(tokenBucketRedisKey, (err, results) => {
+                                    if(err){
+                                        this.log("debug", "IAPI", "Failed to check if redis key exists: " + tokenBucketRedisKey);
                                         reject(err);
-                                    } else {
-                                        this.redis.pexpire(tokenBucketRedisKey, cookieExpireAfter, (err, results) => {
-                                            if (err) {
-                                                this.log("debug", "IAPI", "Failed to set redis key expire: " + tokenBucketRedisKey);
-                                                reject(err);
-                                            }
-                                        });
+                                    }else{
+                                        if(results == 0){
+                                            this.redis.set(tokenBucketRedisKey, JSON.stringify(rateLimitPrototype), (err, results) => {
+                                                if (err) {
+                                                    this.log("debug", "IAPI", "Failed to set redis key: " + tokenBucketRedisKey);
+                                                    reject(err);
+                                                } else {
+                                                    this.redis.pexpire(tokenBucketRedisKey, 3600000, (err, results) => {
+                                                        if (err) {
+                                                            this.log("debug", "IAPI", "Failed to set redis key expire: " + tokenBucketRedisKey);
+                                                            reject(err);
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
                                     }
                                 });
-                                
+
                                 let finalSession = JSON.stringify({
                                     "token": newToken,
                                     "statistics": {
