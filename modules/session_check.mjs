@@ -20,6 +20,7 @@ function SessionCheckMiddleware(log, redis, iapi){
                             if(parsedElement.token === token){
                                 req.isUserSessionValid = true;
                                 req.validUserID = uid;
+                                req.validUserSession = parsedElement;
                             }
                         }
                     }

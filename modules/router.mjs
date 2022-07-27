@@ -252,7 +252,16 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.get('/avatar/*', function (req, res) {
     });
 
+    blorumRouter.get('/articles/*', function (req, res) {
+    });
 
+    blorumRouter.get('/comments/*', function (req, res) {
+    });
+
+    blorumRouter.get('/forums/*', function (req, res) {
+    });
+
+    
     blorumRouter.put('/article', function (req, res) {
     });
 

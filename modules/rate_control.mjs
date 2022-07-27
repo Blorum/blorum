@@ -19,7 +19,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
     this.pathConvert = pathConvert;
     this.expireThreshold = 3600000;
 
-    this.middleware = async (req, res, next) => {
+    this.middleware = (req, res, next) => {
         let reqInfo = getReqInfo(req);
         let userBypassIPRateLimit = false;
         if(req.isUserSessionValid){
@@ -30,57 +30,101 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
             }
         }
 
-        if(!userBypassIPRateLimit){
-            if(reqInfo.ip.substring(0, 7) === "::ffff:"){
-                reqInfo.ip = reqInfo.ip.substring(7, reqInfo.ip.length);
-            }
-            //temp disable ipWhiteList for debug purposes.
-            // if(this.ipWhiteList.indexOf(reqInfo)){
-            //     next();
-            // }else{
-                let redisKeyIT = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
-                try {
-                    let result = await iapi.getRedisKeyIfExists(redisKeyIT);
-                    if(result !== null){
-                        let IPTokenBucket = JSON.parse(result);
-                        next();//To be deleted;
-                    }else{
-                        let newBucket = this.ipRateLimits;
-                        this.redis.set(redisKeyIT, JSON.stringify(newBucket), "PX", this.expireThreshold,
-                            (err, res) => {
-                                if(err){
-                                    res.status(500).send("Redis is down!");
-                                }else{
-                                    next();
-                                }
-                            });
-                    }
-                }catch (error){
-                    this.log("error", "SessionCheck", error);
-                    res.sendStatus(500);
+        let IPRateLimitChecker = () => {
+            return new Promise(async (resolve, reject) => {
+                if(reqInfo.ip.substring(0, 7) === "::ffff:"){
+                    reqInfo.ip = reqInfo.ip.substring(7, reqInfo.ip.length);
                 }
-            // }
-        } else {
-            let redisKeyUT = iapi.rp + ":user_token_bucket:" + reqInfo.uid;
-            try {
-                let result = await iapi.getRedisKeyIfExists(redisKeyUT);
-                if(result !== null){
-                    let userTokenBucket = JSON.parse(result);
-                    next();//To be deleted;
-                }else{
-                    this.redis.set(redisKeyUT, req.validUserPermissions.rate_limits, "PX", req.validUserPermissions.cookie_expire_after, (err, res) => {
-                        if(err){
-                            res.status(500).send("Redis is down!");
+                //temp disable ipWhiteList for debug purposes.
+                // if(this.ipWhiteList.indexOf(reqInfo)){
+                //     return true;
+                // }else{
+                    let redisKeyIT = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
+                    try {
+                        let result = await iapi.getRedisKeyIfExists(redisKeyIT);
+                        if(result !== null){
+                            let IPTokenBucket = JSON.parse(result);
+                            resolve();//To be deleted;
                         }else{
-                            next();
+                            let newBucket = this.ipRateLimits;
+                            this.redis.set(redisKeyIT, JSON.stringify(newBucket), "PX", this.expireThreshold,
+                                (err, res) => {
+                                    if(err){
+                                        reject({
+                                            "status": 500,
+                                            "message": "Failed to create IP token bucket."
+                                        })
+                                    }else{
+                                        resolve();
+                                    }
+                                });
                         }
+                    }catch (error){
+                        this.log("error", "RateControl/IP", error);
+                        reject({
+                            "status": 500,
+                            "message": error
+                        });
+                    }
+                // }
+            });
+        };
+
+        let userRateLimitChecker = () => {
+            return new Promise(async (resolve, reject) => {
+                let redisKeyUT = iapi.rp + ":user_token_bucket:" + req.validUserID;
+                try {
+                    let result = await iapi.getRedisKeyIfExists(redisKeyUT);
+                    if(result !== null){
+                        let userTokenBucket = JSON.parse(result);
+                        resolve();//To be deleted;
+                    }else{
+                        let permissionExpireAfter = JSON.parse(siteConfig.roles_permissions)[req.validUserPermissions.role].cookie_expire_after;
+                        this.redis.set(redisKeyUT, JSON.stringify(req.validUserPermissions.rate_limits), "PX", permissionExpireAfter, (err) => {
+                            if(err){
+                                reject({
+                                    "status": 500,
+                                    "message": "Failed to create user token bucket: " + err
+                                });
+                            }else{
+                                resolve();
+                            }
+                        });
+                    }
+                } catch (error) {
+                    this.log("error", "RateControl/user", error);
+                    reject({
+                        "status": 500,
+                        "message": error
                     });
                 }
-            } catch (error) {
-                this.log("error", "SessionCheck", error);
-                res.sendStatus(500);
+            });
+        }
+
+        if(req.isUserSessionValid){
+            if(userBypassIPRateLimit){
+                userRateLimitChecker().then(() => {
+                    next();
+                }).catch((err) => {
+                    res.status(err.status).send(err.message);
+                });
+            }else{
+                IPRateLimitChecker().then(() => {
+                    userRateLimitChecker().then(() => {
+                        next();
+                    }).catch((err) => {
+                        res.status(err.status).send(err.message);
+                    });
+                }).catch((err) => {
+                    res.status(err.status).send(err.message);
+                });
             }
-            next(); //To be deleted;
+        }else{
+            IPRateLimitChecker().then(() => {
+                next();
+            }).catch((err) => {
+                res.status(err.status).send(err.message);
+            });
         }
     }
 }
