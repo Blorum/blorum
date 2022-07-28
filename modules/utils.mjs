@@ -167,13 +167,14 @@ function cookieParser(raw){
     return cookie;
 }
 
-let pathConvert = {
-
-};
+function pureArray(arr){
+    //remove all empty items in an array
+    return arr.filter(item => item !== "");
+}
 
 export { 
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser, pathConvert
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser, pureArray, filterSpace
 };

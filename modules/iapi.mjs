@@ -123,7 +123,27 @@ class IAPI {
         return new Promise((resolve, reject) => {
             let redisKey = this.rp + ":user_permissions:" + uid;
             this.getRedisKeyIfExists(redisKey).then((results) => {
-                resolve(JSON.parse(results));
+                if(results == null){
+                    this.mysql.query(
+                        "SELECT permissions FROM users WHERE uid = ?",
+                        [uid],
+                        (err, results) => {
+                            if(err){
+                                this.log("debug", "IAPI", "Failed to query database.");
+                                reject(err);
+                            }else{
+                                if(results.length === 0){
+                                    this.log("debug", "IAPI", "User not found in database: " + uid);
+                                    resolve(null);
+                                }else{
+                                    resolve(results[0].permissions);
+                                }
+                            }
+                        }
+                    );
+                }else{
+                    resolve(JSON.parse(results));
+                }
             }).catch((err) => {
                 this.log("debug", "IAPI", "Failed to get user permissions from redis.");
                 this.mysql.query(
@@ -136,7 +156,7 @@ class IAPI {
                         }else{
                             if(results.length === 0){
                                 this.log("debug", "IAPI", "User not found in database.");
-                                reject("User not found");
+                                resolve(null);
                             }else{
                                 resolve(results[0].permissions);
                             }

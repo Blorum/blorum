@@ -63,26 +63,26 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         blorumRouter.use(sessionCheckMiddleware);
         log("log", "Router/MW", "Session check middleware applied.");
     } catch (error) {
-        log("log", "Router/MW", "Failed to apply session check middleware.");
+        log("error", "Router/MW", "Failed to apply session check middleware.");
         process.exit(1);
     }
     try {
         blorumRouter.use(rateControlMiddleware);
         log("log", "Router/MW", "Rate control middleware applied.");
     } catch (error) {
-        log("log", "Router/MW", "Failed to apply rate control middleware.");
+        log("error", "Router/MW", "Failed to apply rate control middleware.");
     }
     try {
         blorumRouter.use(statisticsMiddleware);
         log("log", "Router/MW", "Statistics middleware applied.");
     } catch (error) {
-        log("log", "Router/MW", "Failed to apply statistics middleware.");
+        log("error", "Router/MW", "Failed to apply statistics middleware.");
     }
     try {
         blorumRouter.use(cacheMiddleware);
         log("log", "Router/MW", "Cache strategy middleware applied.");
     } catch (error) {
-        log("log", "Router/MW", "Failed to apply cache strategy middleware.");
+        log("error", "Router/MW", "Failed to apply cache strategy middleware.");
     }
 
     blorumRouter.use(bodyParser.json({limit: '50mb'}));
@@ -163,6 +163,12 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     //JSON API
+    blorumRouter.get('/site/info', function(req, res){
+        res.set("Content-Type","application/json");
+        res.set(commonHeader);
+        let b = req.body;
+    });
+
     blorumRouter.post('/user/login', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
@@ -215,7 +221,24 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
-    blorumRouter.get('/user/permissions', function (req, res) {
+    blorumRouter.get('/user/permissions', function (req, res) { 
+        //TODO: permission check;
+        if(req.isUserSessionValid){
+            let b = req.body;
+            res.set("Content-Type","application/json");
+            res.set(commonHeader);
+            iapi.getUserPermissions(b.uid).then((result) => {
+                if(result == null){
+                    res.status(404).send();
+                }else{
+                    res.status(200).send(result);
+                }
+            }).catch((err) => {
+                res.status(500).send(err);
+            });
+        }else{
+            res.sendStatus(401);
+        }
     });
 
     blorumRouter.post('/user/logout', function (req, res) {
