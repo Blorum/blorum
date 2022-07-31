@@ -6,6 +6,7 @@ import {
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
     mergeJSON
 } from "./utils.mjs";
+import { v4 as uuidv4 } from 'uuid';
 
 class IAPI {
     constructor(mysql, redis, siteConfig, log, salt, redisPrefix) {
@@ -228,9 +229,10 @@ class IAPI {
                                         }
                                     }
                                 });
-
+                                let uuid = uuidv4();
                                 let finalSession = JSON.stringify({
                                     "token": newToken,
+                                    "uuid": uuid,
                                     "statistics": {
                                         "date": this.timestamp(),
                                         "userAgent": ua,
@@ -251,6 +253,7 @@ class IAPI {
                                                     this.log("debug", "IAPI", "Successfully pushed user session to redis, user logged in: " + username + ",results: " + results);
                                                     resolve({
                                                         "uid": user.uid,
+                                                        "uuid": uuid,
                                                         "role": userRole,
                                                         "permissions": userPermissions.permissions,
                                                         "token": newToken
@@ -360,14 +363,14 @@ class IAPI {
             }
         });
     }
-    userLogout(uid, token){
+    userLogout(uid, uuid){
         return new Promise((resolve, reject) => {  
             let promisePool = [];
             let redisKey = this.rp + ":user_session:" + uid;
             this.redis.lrange(redisKey, 0, -1, (err, results) => {
                 for(const element of results){
                     let parsedElement = JSON.parse(element);
-                    if(parsedElement.token === token){
+                    if(parsedElement.uuid === uuid){
                         promisePool.push(new Promise((resolve, reject) => {
                             this.redis.lrem(redisKey, 0, element, (err, results) => {
                                 if(err){
@@ -383,7 +386,7 @@ class IAPI {
                     if(results.length > 0){
                         resolve();
                     }else{
-                        reject("Token not found");
+                        reject("Session not found");
                     }
                 }).catch((err) => {
                     reject(err);
@@ -393,8 +396,6 @@ class IAPI {
             });
         });
     }
-
-    //userSessionList(req, uid, token)
 }
 
 export { IAPI };

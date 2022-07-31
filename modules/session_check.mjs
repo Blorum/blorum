@@ -9,18 +9,20 @@ function SessionCheckMiddleware(log, redis, iapi){
         req.isUserSessionValid = false;
         if(cookie !== undefined){
             let cookieParsed = cookieParser(cookie);
-            if(objHasAllProperties(cookieParsed, "blorum_uid", "blorum_token")){
+            if(objHasAllProperties(cookieParsed, "blorum_uid", "blorum_token", "blorum_uuid")){
                 let uid = cookieParsed.blorum_uid;
+                let uuid = cookieParsed.blorum_uuid;
                 let token = decodeURIComponent(cookieParsed.blorum_token);
                 req.header.token = token;
                 iapi.getValidUserSession(uid).then(function(result){
                     if(result.sessions.length > 0){
                         for(const element of result.sessions){
                             let parsedElement = JSON.parse(element);
-                            if(parsedElement.token === token){
+                            if(parsedElement.uuid === uuid && parsedElement.token === token){
                                 req.isUserSessionValid = true;
                                 req.validUserID = uid;
                                 req.validUserSession = parsedElement;
+                                req.validUserSessionUUID = uuid;
                             }
                         }
                     }

@@ -34,6 +34,7 @@
     "ioredis": "^5.1.0",
     "json5": "^2.2.1",
     "mysql2": "^2.3.3",
-    "nodemailer": "^6.7.7"
+    "nodemailer": "^6.7.7",
+    "uuid": "^8.3.2"
   }
 }

@@ -181,6 +181,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                     let parsedPermission = ""; //Todo
                     res.cookie("blorum_uid", result.uid, {httpOnly: true});
                     res.cookie("blorum_token", result.token, {httpOnly: true});
+                    res.cookie("blorum_uuid", result.uuid);
                     res.cookie("blorum_permissions", parsedPermission);
                     res.status(200).send(result);
                 }).catch(function(err){
@@ -243,11 +244,15 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
 
     blorumRouter.post('/user/logout', function (req, res) {
         if(req.isUserSessionValid){
+            let b = req.body;
             res.set(commonHeader);
-            iapi.userLogout(req.validUserID, req.header.token).then(function(result){
-                res.clearCookie('blorum_uid');
-                res.clearCookie('blorum_token');
-                res.clearCookie('blorum_permissions');
+            iapi.userLogout(req.validUserID, b.uuid).then(function(result){
+                if(b.uuid === req.validUserSessionUUID){
+                    res.clearCookie('blorum_uid');
+                    res.clearCookie('blorum_uuid');
+                    res.clearCookie('blorum_token');
+                    res.clearCookie('blorum_permissions');
+                }
                 res.sendStatus(200);
             }).catch(function(err){
                 res.status(500).send(err);
@@ -257,7 +262,26 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
-    blorumRouter.post('/user/sessionList', function (req, res) {
+    blorumRouter.get('/user/sessionList', function (req, res) {
+        if(req.isUserSessionValid){
+            let b = req.body;
+            res.set("Content-Type","application/json");
+            res.set(commonHeader);
+            iapi.getUserSession(b.uid).then((results) => {
+                if(results == null){
+                    res.status(404).send();
+                }else{
+                    for(var i = 0; i < results.length; i++){
+                        results[i] = JSON.parse(results[i]);
+                    }
+                    res.status(200).send(results);
+                }
+            }).catch((err) => {
+                res.status(500).send(err);
+            });
+        }else{
+            res.sendStatus(401);
+        }
     });
 
     blorumRouter.post('/user/invite', function (req, res) {
@@ -270,18 +294,26 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.get('/users/*', function (req, res) {
+        let id = req.params[0];
+        console.log(id);
     });
 
     blorumRouter.get('/avatar/*', function (req, res) {
+        let id = req.params[0];
     });
 
     blorumRouter.get('/articles/*', function (req, res) {
+        let id = req.params[0];
     });
 
-    blorumRouter.get('/comments/*', function (req, res) {
+    blorumRouter.get('/comments/*/*', function (req, res) {
+        let resPath = req.params[0];
+        let id = req.params[0];
+        let b = req.body;
     });
 
     blorumRouter.get('/forums/*', function (req, res) {
+        let id = req.params[0];
     });
 
     
