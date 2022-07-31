@@ -3,6 +3,8 @@
 
 Languages : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) [中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-cn.md)
 
+## This project is in active development, and is not ready for use.
+
 #### _To combine personal blog with public forum._
 
 
