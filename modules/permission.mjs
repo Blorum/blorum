@@ -1,15 +1,7 @@
-const roles = {
-    "omni" : ["omni"],
-    "admin": [],
-    "moderator": [],
-    "writer": [],
-    "forum_moderator": []
-}
+//Builtin helper for permission assigning.
 
 const bundles = {
-    "articles_control": [],
-    "posts_control": [],
-    "forums_control": []
+
 }
 
-export {roles, bundles}
+export {bundles}

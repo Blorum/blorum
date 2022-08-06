@@ -2,7 +2,7 @@ import { default as blake3 } from "blake3";
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 
-const version = "1.0.0 in_dev (unf, debug) dv 10006";
+const version = "1.0.0 in_dev (unf, debug) dv 10007";
 const innerVersion = "10000000";
 
 const c = {
@@ -172,9 +172,13 @@ function pureArray(arr){
     return arr.filter(item => item !== "");
 }
 
+function getPermissionSum(...p){
+
+}
+
 export { 
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser, pureArray, filterSpace
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser, pureArray, filterSpace, getPermissionSum
 };

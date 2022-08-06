@@ -293,31 +293,36 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.post('/user/create', function (req, res) {
     });
 
-    blorumRouter.get('/users/*', function (req, res) {
-        let id = req.params[0];
-        console.log(id);
+    blorumRouter.get('/users/:uid', function (req, res) {
+        let uid = req.params["uid"];
     });
 
-    blorumRouter.get('/avatar/*', function (req, res) {
-        let id = req.params[0];
+    blorumRouter.get('/avatar/:uid', function (req, res) {
+        let uid = req.params["uid"];
     });
 
-    blorumRouter.get('/articles/*', function (req, res) {
-        let id = req.params[0];
+    blorumRouter.get('/articles/:aid', function (req, res) {
+        let aid = req.params["aid"];
     });
 
-    blorumRouter.get('/comments/*/*', function (req, res) {
-        let resPath = req.params[0];
-        let id = req.params[0];
-        let b = req.body;
+    blorumRouter.get('/comments/:type/:cid', function (req, res) {
+        let commentType = req.params["type"];
+        let cid = req.params["cid"];
     });
 
-    blorumRouter.get('/forums/*', function (req, res) {
-        let id = req.params[0];
+    blorumRouter.get('/forums/:fid', function (req, res) {
+        let fid = req.params["fid"];
     });
 
     
     blorumRouter.put('/article', function (req, res) {
+        let b = req.body;
+        let articleContent = b.content;
+        let category = b.category;
+        let title = b.title;
+        let excerpt = b.excerpt;
+        let tags = b.tags;
+        
     });
 
     blorumRouter.put('/post', function (req, res) {

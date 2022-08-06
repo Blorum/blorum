@@ -120,6 +120,11 @@ class IAPI {
             }
         });
     }
+    getRolePermissions(role){
+        return new Promise((resolve, reject) => {
+        
+        });
+    }
     getUserPermissions(uid){
         return new Promise((resolve, reject) => {
             let redisKey = this.rp + ":user_permissions:" + uid;
