@@ -1,23 +1,13 @@
--- phpMyAdmin SQL Dump
--- version 5.0.4
--- https://www.phpmyadmin.net/
---
--- Host: localhost
--- Generation Time: Jul 15, 2022 at 05:23 PM
--- Server version: 5.7.30-log
--- PHP Version: 8.0.3
-
-use blorum;
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
+CREATE DATABASE blorum;
+use blorum;
 --
 -- Database: `blorum`
 --
@@ -252,6 +242,31 @@ CREATE TABLE `reports` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `roles`
+--
+
+CREATE TABLE `roles` (
+  `name` varchar(64) NOT NULL,
+  `with_rate_limit` tinyint(1) NOT NULL,
+  `permissions` json NOT NULL,
+  `rate_limits` json NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `roles`
+--
+
+INSERT INTO `roles` (`name`, `with_rate_limit`, `permissions`, `rate_limits`) VALUES
+('admin', 1, '{\"flags\": [\"override_ip_rate_limits\"], \"max_session\": 10, \"cookie_expire_after\": 13150000000}', '{\"edit\": {\"post\": -1, \"react\": -1, \"article\": -1, \"comment\": -1}, \"login\": -1, \"create\": {\"post\": -1, \"react\": -1, \"article\": -1, \"comment\": -1}, \"remove\": {\"post\": -1, \"react\": -1, \"article\": -1, \"comment\": -1}}'),
+('auditor', 1, '{\"flags\": [], \"max_session\": 10, \"cookie_expire_after\": 13150000000}', '{\"edit\": {\"post\": 15, \"react\": 240, \"article\": 1, \"comment\": 360}, \"login\": 20, \"create\": {\"post\": 10, \"react\": 60, \"article\": 0, \"comment\": 60}, \"remove\": {\"post\": 15, \"react\": 240, \"article\": 1, \"comment\": 360}}'),
+('forum_admin', 1, '{\"flags\": [], \"max_session\": 10, \"cookie_expire_after\": 13150000000}', '{\"edit\": {\"post\": 100, \"react\": 240, \"article\": 0, \"comment\": 240}, \"login\": 20, \"create\": {\"post\": 60, \"react\": 120, \"article\": 0, \"comment\": 120}, \"remove\": {\"post\": 100, \"react\": 240, \"article\": 0, \"comment\": 240}}'),
+('moderator', 1, '{\"flags\": [], \"max_session\": 10, \"cookie_expire_after\": 13150000000}', '{\"edit\": {\"post\": 60, \"react\": 120, \"article\": 60, \"comment\": 120}, \"login\": 20, \"create\": {\"post\": 60, \"react\": 120, \"article\": 60, \"comment\": 120}, \"remove\": {\"post\": 60, \"react\": 120, \"article\": 60, \"comment\": 120}}'),
+('user', 1, '{\"flags\": [], \"max_session\": 8, \"cookie_expire_after\": 2630000000}', '{\"edit\": {\"post\": 10, \"react\": 30, \"article\": 0, \"comment\": 24}, \"login\": 20, \"create\": {\"post\": 6, \"react\": 30, \"article\": 0, \"comment\": 24}, \"remove\": {\"post\": 10, \"react\": 30, \"article\": 0, \"comment\": 24}}'),
+('writer', 1, '{\"flags\": [], \"max_session\": 10, \"cookie_expire_after\": 2630000000}', '{\"edit\": {\"post\": 10, \"react\": 30, \"article\": 5, \"comment\": 30}, \"login\": 20, \"create\": {\"post\": 10, \"react\": 30, \"article\": 5, \"comment\": 30}, \"remove\": {\"post\": 10, \"react\": 30, \"article\": 5, \"comment\": 30}}');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `statistics`
 --
 
@@ -259,6 +274,13 @@ CREATE TABLE `statistics` (
   `name` varchar(64) NOT NULL,
   `value` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `statistics`
+--
+
+INSERT INTO `statistics` (`name`, `value`) VALUES
+('test', '{\"a\": 1}');
 
 -- --------------------------------------------------------
 
@@ -275,7 +297,7 @@ CREATE TABLE `users` (
   `avatar` varchar(256) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `about` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `statistics` json NOT NULL,
-  `permissions` json NOT NULL,
+  `roles` json NOT NULL,
   `preferences` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -283,7 +305,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`uid`, `username`, `nickname`, `password`, `email`, `avatar`, `about`, `statistics`, `permissions`, `preferences`) VALUES
+INSERT INTO `users` (`uid`, `username`, `nickname`, `password`, `email`, `avatar`, `about`, `statistics`, `roles`, `preferences`) VALUES
 (0, 'system', 'system', '', '', '', 'Blorum System', '{}', '{}', '{}');
 
 --
@@ -376,6 +398,12 @@ ALTER TABLE `posts`
 ALTER TABLE `reports`
   ADD PRIMARY KEY (`rid`),
   ADD KEY `tid` (`tid`);
+
+--
+-- Indexes for table `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`name`);
 
 --
 -- Indexes for table `statistics`
