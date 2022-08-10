@@ -9,21 +9,21 @@ async function wrapper() {
     const extensionList = (await import("./modules/extension.mjs")).extensionList;
     
     const prerequisite = initializeBlorumServer();
-    prerequisite.promise.then(function (results) {
-        prerequisite.log("log", "Main", "Blorum pre-initialization finished.");
-        let router = initializeRouter(results[0].mysql, results[1], results[0].site_config, prerequisite.log, prerequisite.bootConfig.salt, prerequisite.bootConfig.database.redis.prefix);
-        if (prerequisite.bootConfig.port <= 1000 && prerequisite.bootConfig.port != 0) {
-            prerequisite.log("warn", "Main", "Port might cause conflict.");
-            prerequisite.log("warn", "Main", "If you are under *Unix system, this require privilege.");
+    prerequisite.then(function (results) {
+        results.log("log", "Main", "Blorum pre-initialization finished.");
+        let router = initializeRouter(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix);
+        if (results.bootConfig.port <= 1000 && results.bootConfig.port != 0) {
+            results.log("warn", "Main", "Port might cause conflict.");
+            results.log("warn", "Main", "If you are under *Unix system, this require privilege.");
         }
         let finalServer = http.createServer(
             router
-        ).listen(prerequisite.bootConfig.port, function () {
-            prerequisite.log("log", "Main", "Blorum Server started on port " + finalServer.address().port);
+        ).listen(results.bootConfig.port, function () {
+            results.log("log", "Main", "Blorum Server started on port " + finalServer.address().port);
             console.log("Welcome to Blorum, made with ♡  by Winslow S.E.M.");
         }).on('error', function (err) {
-            prerequisite.log("error", "Main", "Blorum Server failed to start on port " + prerequisite.bootConfig.port);
-            prerequisite.log("error", "Main", err);
+            results.log("error", "Main", "Blorum Server failed to start on port " + results.bootConfig.port);
+            results.log("error", "Main", err);
         });
     });
 }

@@ -18,7 +18,6 @@ class IAPI {
         this.rp = redisPrefix;
         //For util functions in IAPI, redis prefix will not be automatically added.
         //Redis prefix needed to be added manually in caller function.
-        this.rolePermissions = JSON.parse(siteConfig.roles_permissions);
         this.log("log", "IAPI", "IAPI instance created.");
     }
     timestamp(){

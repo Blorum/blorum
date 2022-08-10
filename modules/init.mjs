@@ -9,7 +9,7 @@ import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 
 function MysqlIntegrityCheck(mysqlConnection) {
     return new Promise((resolve, reject) => {
-        resolve();
+        resolve(); //TODO
     });
 }
 
@@ -49,45 +49,72 @@ function initializeBlorumServer() {
     if (!bootConfig.is_installed) {
         log("error", "INIT", "value of config.is_installed is false!!!");
     } else {
-        let mysqlConnection = mysql.createConnection(bootConfig.database.mysql);
-        let redisPromise = promisifiedRedisConnect(bootConfig.database.redis);
-        redisPromise.catch(function (err) {
-            log("error", "INIT:db/redis", "Failed to connect to Redis Server");
-            throw err;
-        }).then(function () {
-            log("log", "INIT:db/redis", "Successfully connected to Redis Server");
-        });
-        let mysqlPromise = new Promise((resolve, reject) => {
-            promisifiedMysqlConnect(mysqlConnection).then(function (conn) {
+        return new Promise((resolve, reject) => {
+            let mysqlConnection = mysql.createConnection(bootConfig.database.mysql); 
+            let redisPromise = promisifiedRedisConnect(bootConfig.database.redis);
+            redisPromise.catch(function (err) {
+                log("error", "INIT:db/redis", "Failed to connect to Redis Server");
+                throw err;
+            }).then(function () {
+                log("log", "INIT:db/redis", "Successfully connected to Redis Server");
+            });
+            let mysqlPromise = promisifiedMysqlConnect(mysqlConnection);
+            mysqlPromise.then(function () {
                 log("log", "INIT:db/mysql", "Successfully connected to MySQL Server");
-                MysqlIntegrityCheck(conn).then(function () {
-                    conn.query("SELECT * FROM config;", function (err, result) {
-                        if (err) {
-                            throw err;
-                        }
-                        let siteConfig = {};
-                        for(const element of result){
-                            siteConfig[element.flag] = element.value;
-                        }
-                        resolve({
-                            "mysql": mysqlConnection,
-                            "site_config": siteConfig
-                        });
-                    });
-                }).catch(function (err) {
-                    log("error", "INIT:db/mysql", "MySQL database integrity check failed.");
-                    throw err;
-                });
             }).catch(function (err) {
                 log("error", "INIT:db/mysql", "Failed to connect to MySQL Server");
-                throw err;
+                reject(err);
+            });
+
+            Promise.all([redisPromise, mysqlPromise]).then((values) => {
+                let mysqlConn = values[1];
+                let redisConn = values[0];
+                MysqlIntegrityCheck(mysqlConn).then(() => {
+                    mysqlConn.query("SELECT * FROM config;", (err,results) => {
+                        if (err) {
+                            log("error", "INIT:db/mysql", "Failed to query config table");
+                            reject(err);
+                        } else {
+                            log("log", "INIT:db/mysql", "Site config loaded");
+                            let siteConfig = {};
+                            for(const element of results){
+                                siteConfig[element.flag] = element.value;
+                            }
+                            mysqlConn.query("SELECT * FROM roles;", (err,results) => {
+                                if (err) {
+                                    log("error", "INIT:db/mysql", "Failed to query roles table");
+                                    reject(err);
+                                }else{
+                                    let redisKey = bootConfig.database.redis.prefix + ":roles:";
+                                    for(let element of results){
+                                        try {
+                                            let keyName = redisKey + element.name;
+                                            delete element.name;
+                                            redisConn.set(keyName, JSON.stringify(element)); 
+                                        } catch (error) {
+                                            log("error", "INIT:db/redis", "Failed to set role in redis");
+                                            reject(error);
+                                        }
+                                        resolve({
+                                            "log": log,
+                                            "mysql": mysqlConn,
+                                            "redis": redisConn,
+                                            "siteConfig": siteConfig,
+                                            "bootConfig": bootConfig
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }).catch(function (err) {
+                    log("error", "INIT:db/mysql", "MySQL Database integrity check failed. ");
+                    reject(err);
+                });
+            }).catch(function (err) {
+                reject(err);
             });
         });
-        return {
-            "bootConfig": bootConfig,
-            "promise": Promise.all([mysqlPromise, redisPromise]),
-            "log": log
-        };
     }
 }
 
