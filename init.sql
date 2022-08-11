@@ -2,6 +2,9 @@
 use blorum;
 truncate config;
 /*True/False Flags*/
+
+START TRANSACTION;
+
 INSERT INTO `config`(`flag`, `value`) VALUES ("allowed_register","true");
 INSERT INTO `config`(`flag`, `value`) VALUES ("allowed_login","true");
 INSERT INTO `config`(`flag`, `value`) VALUES ("allowed_comment_to_article","true");
@@ -54,3 +57,5 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("default_email_protocol","smtp");
 INSERT INTO `config`(`flag`, `value`) VALUES ("sendmail_config","{}");
 INSERT INTO `config`(`flag`, `value`) VALUES ("smtp_config","{}");
 INSERT INTO `config`(`flag`, `value`) VALUES ("ses_config","{}");
+
+COMMIT;

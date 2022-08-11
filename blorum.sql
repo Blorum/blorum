@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS blorum;
+use blorum;
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 
@@ -6,8 +9,6 @@ START TRANSACTION;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
-CREATE DATABASE blorum;
-use blorum;
 --
 -- Database: `blorum`
 --
@@ -297,7 +298,7 @@ CREATE TABLE `users` (
   `avatar` varchar(256) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `about` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `statistics` json NOT NULL,
-  `roles` json NOT NULL,
+  `roles` longtext NOT NULL,
   `preferences` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -416,7 +417,8 @@ ALTER TABLE `statistics`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `username` (`username`);
+  ADD UNIQUE KEY `username` (`username`),
+  ADD KEY `email` (`email`);
 
 --
 -- AUTO_INCREMENT for dumped tables

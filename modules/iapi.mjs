@@ -113,7 +113,6 @@ class IAPI {
                         "sessions": []
                     });
                 }
-
             } catch (error) {
                 reject(error);
             }
@@ -121,16 +120,22 @@ class IAPI {
     }
     getRolePermissions(role){
         return new Promise((resolve, reject) => {
-        
+            this.redis.get(this.rp + ":roles:" + role, (err, results) => {
+                if(err){
+                    reject(err);
+                }else{
+                    resolve(results);
+                }
+            });
         });
     }
-    getUserPermissions(uid){
+    getUserRoles(uid){
         return new Promise((resolve, reject) => {
-            let redisKey = this.rp + ":user_permissions:" + uid;
+            let redisKey = this.rp + ":user_roles:" + uid;
             this.getRedisKeyIfExists(redisKey).then((results) => {
                 if(results == null){
                     this.mysql.query(
-                        "SELECT permissions FROM users WHERE uid = ?",
+                        "SELECT roles FROM users WHERE uid = ?",
                         [uid],
                         (err, results) => {
                             if(err){
@@ -141,7 +146,7 @@ class IAPI {
                                     this.log("debug", "IAPI", "User not found in database: " + uid);
                                     resolve(null);
                                 }else{
-                                    resolve(results[0].permissions);
+                                    resolve(results[0].roles);
                                 }
                             }
                         }
@@ -150,9 +155,9 @@ class IAPI {
                     resolve(JSON.parse(results));
                 }
             }).catch((err) => {
-                this.log("debug", "IAPI", "Failed to get user permissions from redis.");
+                this.log("debug", "IAPI", "Failed to get user roles from redis.");
                 this.mysql.query(
-                    "SELECT permissions FROM users WHERE uid = ?",
+                    "SELECT roles FROM users WHERE uid = ?",
                     [uid],
                     (err, results) => {
                         if(err){
@@ -163,12 +168,17 @@ class IAPI {
                                 this.log("debug", "IAPI", "User not found in database.");
                                 resolve(null);
                             }else{
-                                resolve(results[0].permissions);
+                                resolve(results[0].roles);
                             }
                         }
                     }
                 );
             });
+        });
+    }
+    getUserPermissions(uid){
+        return new Promise((resolve, reject) => {
+
         });
     }
     //Actual service functions
