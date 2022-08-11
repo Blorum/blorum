@@ -4,7 +4,7 @@ JSON.parse = parse.parse;
 import {
     generateNewToken, blake3Hash, objHasAllProperties,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
-    mergeJSON
+    mergeJSON, getPermissionSum
 } from "./utils.mjs";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +16,7 @@ class IAPI {
         this.log = log;
         this.salt = salt;
         this.rp = redisPrefix;
+        this.rateLimitFallback = siteConfig.ratelimit_fallback;
         //For util functions in IAPI, redis prefix will not be automatically added.
         //Redis prefix needed to be added manually in caller function.
         this.log("log", "IAPI", "IAPI instance created.");
@@ -146,7 +147,7 @@ class IAPI {
                                     this.log("debug", "IAPI", "User not found in database: " + uid);
                                     resolve(null);
                                 }else{
-                                    resolve(results[0].roles);
+                                    resolve(results[0].roles.split(","));
                                 }
                             }
                         }
@@ -168,7 +169,7 @@ class IAPI {
                                 this.log("debug", "IAPI", "User not found in database.");
                                 resolve(null);
                             }else{
-                                resolve(results[0].roles);
+                                resolve(results[0].roles.split(","));
                             }
                         }
                     }
@@ -177,8 +178,30 @@ class IAPI {
         });
     }
     getUserPermissions(uid){
-        return new Promise((resolve, reject) => {
-
+        return new Promise(async (resolve, reject) => {
+            let userRoles = await this.getUserRoles(uid);
+            if(userRoles == null){
+                reject("User not found in database.");
+            }else if(typeof userRoles === "object" && userRoles[0] == ""){
+                reject("User has no roles.");
+            }else{
+                let promisePool = [];
+                for(const element of userRoles){
+                    promisePool.push(new Promise((resolve, reject) => {
+                        this.getRolePermissions(element).then((results) => {
+                            resolve(results);
+                        }).catch((err) => {
+                            reject(err);
+                        });
+                    }));
+                }
+                Promise.allSettled(promisePool).then((results) => {
+                    let permissions = getPermissionSum(this.rateLimitFallback, results);
+                    resolve(permissions);
+                }).catch((err) => {
+                    reject(err);
+                });
+            }
         });
     }
     //Actual service functions

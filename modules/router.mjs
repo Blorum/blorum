@@ -1,7 +1,7 @@
 import parse from "json5";
 JSON.parse = parse.parse;
 
-import {default as express} from "express";
+import { default as express } from "express";
 import { version, innerVersion, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
 import { IAPI } from "./iapi.mjs";
 import { default as fs } from "fs";
@@ -18,7 +18,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         let ip = null;
         let ua = null;
         if(siteConfig.ip_detect_method == "connection"){
-            ip =  req.connection.remoteAddress;
+            ip = req.connection.remoteAddress;
         }else if(siteConfig.ip_detect_method == "header"){
             //Default header X-Forwarded-For.
             if(req.headers.hasOwnProperty(siteConfig.ip_detect_header)){

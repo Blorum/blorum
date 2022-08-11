@@ -171,9 +171,22 @@ function pureArray(arr){
     //remove all empty items in an array
     return arr.filter(item => item !== "");
 }
-
+        
 function getPermissionSum(...p){
-
+    //return the greatest permissions of all given role permissions
+    let permSum = {
+        "with_rate_limit": 0,
+        "permissions": {
+            "flags": [],
+            "max_session": 10,
+            "cookie_expire_after": 13150000000
+        }
+    };
+    let isRateLimitContained = false;
+    for(const perm of p){
+        
+    }
+    return permSum;
 }
 
 export { 
