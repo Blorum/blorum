@@ -16,7 +16,6 @@ class IAPI {
         this.log = log;
         this.salt = salt;
         this.rp = redisPrefix;
-        this.rateLimitFallback = siteConfig.ratelimit_fallback;
         //For util functions in IAPI, redis prefix will not be automatically added.
         //Redis prefix needed to be added manually in caller function.
         this.log("log", "IAPI", "IAPI instance created.");
@@ -196,7 +195,7 @@ class IAPI {
                     }));
                 }
                 Promise.allSettled(promisePool).then((results) => {
-                    let permissions = getPermissionSum(this.rateLimitFallback, results);
+                    let permissions = getPermissionSum(results);
                     resolve(permissions);
                 }).catch((err) => {
                     reject(err);
@@ -209,7 +208,7 @@ class IAPI {
         return new Promise((resolve, reject) => {
             password = blake3Hash(this.salt + password);
             this.mysql.query(
-                "SELECT uid,password,permissions FROM users WHERE username = ?",
+                "SELECT uid,password,roles FROM users WHERE username = ?",
                 [username],
                 (err, results) => {
                     if (err) {

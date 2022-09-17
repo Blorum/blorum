@@ -171,6 +171,10 @@ function pureArray(arr){
     //remove all empty items in an array
     return arr.filter(item => item !== "");
 }
+
+function mergeArray(...args){
+    return Array.from(new Set(args.reduce((a, b) => a.concat(b))));
+}
         
 function getPermissionSum(...p){
     //return the greatest permissions of all given role permissions
@@ -184,7 +188,13 @@ function getPermissionSum(...p){
     };
     let isRateLimitContained = false;
     for(const perm of p){
-        
+        if(perm.with_rate_limit == 1){
+            if(!isRateLimitContained){
+                p.rate_limits = perm.rate_limits;
+            }
+            isRateLimitContained = true;
+            //todo: rate limit merge
+        }
     }
     return permSum;
 }
