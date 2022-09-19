@@ -3,7 +3,6 @@ import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { outputLogsColored, outputLogs } from "./utils.mjs";
 import { default as mysql } from "mysql2";
-import { default as redis } from "ioredis";
 import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 
 
@@ -53,16 +52,16 @@ function initializeBlorumServer() {
             let mysqlConnection = mysql.createConnection(bootConfig.database.mysql); 
             let redisPromise = promisifiedRedisConnect(bootConfig.database.redis);
             redisPromise.catch(function (err) {
-                log("error", "INIT:db/redis", "Failed to connect to Redis Server");
+                log("error", "INIT/db/redis", "Failed to connect to Redis Server.");
                 throw err;
             }).then(function () {
-                log("log", "INIT:db/redis", "Successfully connected to Redis Server");
+                log("log", "INIT/db/redis", "Successfully connected to Redis Server.");
             });
             let mysqlPromise = promisifiedMysqlConnect(mysqlConnection);
             mysqlPromise.then(function () {
-                log("log", "INIT:db/mysql", "Successfully connected to MySQL Server");
+                log("log", "INIT/db/mysql", "Successfully connected to MySQL Server.");
             }).catch(function (err) {
-                log("error", "INIT:db/mysql", "Failed to connect to MySQL Server");
+                log("error", "INIT/db/mysql", "Failed to connect to MySQL Server.");
                 reject(err);
             });
 
@@ -72,17 +71,17 @@ function initializeBlorumServer() {
                 MysqlIntegrityCheck(mysqlConn).then(() => {
                     mysqlConn.query("SELECT * FROM config;", (err,results) => {
                         if (err) {
-                            log("error", "INIT:db/mysql", "Failed to query config table");
+                            log("error", "INIT/db/mysql", "Failed to query config table.");
                             reject(err);
                         } else {
-                            log("log", "INIT:db/mysql", "Site config loaded");
+                            log("log", "INIT/db/mysql", "Site config loaded.");
                             let siteConfig = {};
                             for(const element of results){
                                 siteConfig[element.flag] = element.value;
                             }
                             mysqlConn.query("SELECT * FROM roles;", (err,results) => {
                                 if (err) {
-                                    log("error", "INIT:db/mysql", "Failed to query roles table");
+                                    log("error", "INIT/db/mysql", "Failed to query roles table.");
                                     reject(err);
                                 }else{
                                     let redisKey = bootConfig.database.redis.prefix + ":roles:";
@@ -92,7 +91,7 @@ function initializeBlorumServer() {
                                             delete element.name;
                                             redisConn.set(keyName, JSON.stringify(element)); 
                                         } catch (error) {
-                                            log("error", "INIT:db/redis", "Failed to set role in redis");
+                                            log("error", "INIT/db/redis", "Failed to set role in redis.");
                                             reject(error);
                                         }
                                         resolve({
@@ -108,7 +107,7 @@ function initializeBlorumServer() {
                         }
                     });
                 }).catch(function (err) {
-                    log("error", "INIT:db/mysql", "MySQL Database integrity check failed. ");
+                    log("error", "INIT/db/mysql", "MySQL Database integrity check failed. ");
                     reject(err);
                 });
             }).catch(function (err) {

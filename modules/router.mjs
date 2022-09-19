@@ -105,6 +105,12 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         res.set(commonHeader);
         res.sendStatus(200);
     });
+
+    //Future todo: blorux
+    blorumRouter.get('/blorux/reload_site_config', function(req, res){
+        
+    });
+
     blorumRouter.get('/', function (req, res) {
         res.set("Content-Type","application/json");
         res.set(commonHeader);
@@ -125,6 +131,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.get('/statics/*', function(req, res){
+        // PRIORIZED TODO: FIX .. ESCAPE
         let path = req.params[0];
         let __dirname = fileURLToPath(import.meta.url);
         let filePath = join(__dirname, '..', '..','statics', path);

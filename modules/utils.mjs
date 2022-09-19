@@ -33,6 +33,11 @@ const c = {
 
 function outputLogs(level, context, info) {
     let currentTime = new Date().toTimeString().substring(0, 8);
+    if(currentTime.length == 10){
+        currentTime = currentTime + "00";
+    }else if(currentTime.length == 11){
+        currentTime = currentTime + "0";
+    }
     let logs = `[${level}][${currentTime}][${context}]: ${info}`;
     console.log(logs);
 }
@@ -40,6 +45,11 @@ function outputLogs(level, context, info) {
 function outputLogsColored(level, context, info) {
     let date = new Date();
     let currentTime = date.toTimeString().substring(0, 8) + "." + date.getMilliseconds();
+    if(currentTime.length == 10){
+        currentTime = currentTime + "00";
+    }else if(currentTime.length == 11){
+        currentTime = currentTime + "0";
+    }
     let logs = "";
     switch (level) {
         case "debug":
