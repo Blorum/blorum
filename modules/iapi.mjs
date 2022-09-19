@@ -205,12 +205,12 @@ class IAPI {
     }
     //Actual service functions
     userLogin(ip, ua, username, password) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             password = blake3Hash(this.salt + password);
             this.mysql.query(
                 "SELECT uid,password,roles FROM users WHERE username = ?",
                 [username],
-                (err, results) => {
+                async (err, results) => {
                     if (err) {
                         this.log("debug", "IAPI", "Failed to query database");
                         reject(err);
@@ -222,47 +222,50 @@ class IAPI {
                             let user = results[0];
                             if (user.password === password) {
                                 let newToken = generateNewToken(this.salt, username);
-                                let userPermissions = user.permissions;
-                                let rateLimitPrototype = user.permissions.rate_limits;
-                                let userRole = userPermissions.role;
+                                let userRole = user.roles.split(",");
                                 let redisKey = this.rp + ":user_session:" + user.uid;
-                                let cookieExpireAfter = JSON.parse(this.siteConfig["roles_permissions"])[userRole]["cookie_expire_after"];
-                                let permissionsRedisKey = this.rp + ":user_permissions:" + user.uid;
+                                let cookie_expire_after = Infinity;
+
+                                let permissionList = [];
+                                let permissionRedisPromisePool = [];
+                                for(const element of userRole){
+                                    permissionRedisPromisePool.push(
+                                        this.getRolePermissions(element).then((result) => {
+                                            permissionList.push(result);
+                                        })
+                                    );  
+                                }
+                                var permissionSum;
+                                Promise.all(permissionRedisPromisePool).then(() => {
+                                    permissionSum = getPermissionSum(permissionList);
+                                })
+                                let cookit_expire_after = permissionSum.permissions.cookie_expire_after;
+
                                 let tokenBucketRedisKey = this.rp + ":user_token_bucket:" + user.uid;
+                                /*
+
+                                PRIORIZED TODO:
+
+                                Rewritting permission database structure, all userPermissions need to be replaced.
+                                
+                                */
+                                if(permissionSum.with_rate_limit){
+
+                                }else{
+
+                                }
+                                let permissionsRedisKey = this.rp + ":user_permissions:" + user.uid;
                                 this.redis.set(permissionsRedisKey, JSON.stringify(userPermissions), (err, results) => {
                                     if (err) {
                                         this.log("debug", "IAPI", "Failed to set redis key: " + permissionsRedisKey);
                                         reject(err);
                                     } else {
-                                        this.redis.pexpire(permissionsRedisKey, cookieExpireAfter, (err, results) => {
+                                        this.redis.pexpire(permissionsRedisKey, cookit_expire_after, (err, results) => {
                                             if (err) {
                                                 this.log("debug", "IAPI", "Failed to set redis key expire: " + permissionsRedisKey);
                                                 reject(err);
                                             }
                                         });
-                                    }
-                                });
-                                
-                                this.redis.exists(tokenBucketRedisKey, (err, results) => {
-                                    if(err){
-                                        this.log("debug", "IAPI", "Failed to check if redis key exists: " + tokenBucketRedisKey);
-                                        reject(err);
-                                    }else{
-                                        if(results == 0){
-                                            this.redis.set(tokenBucketRedisKey, JSON.stringify(rateLimitPrototype), (err, results) => {
-                                                if (err) {
-                                                    this.log("debug", "IAPI", "Failed to set redis key: " + tokenBucketRedisKey);
-                                                    reject(err);
-                                                } else {
-                                                    this.redis.pexpire(tokenBucketRedisKey, 3600000, (err, results) => {
-                                                        if (err) {
-                                                            this.log("debug", "IAPI", "Failed to set redis key expire: " + tokenBucketRedisKey);
-                                                            reject(err);
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
                                     }
                                 });
                                 let uuid = uuidv4();
@@ -324,7 +327,7 @@ class IAPI {
             }else{
                 password = blake3Hash(this.salt + password);
                 this.mysql.query(
-                    "SELECT * FROM users WHERE username = ?",
+                    "SELECT username FROM users WHERE username = ?",
                     [username],
                     (err, results) => {
                         if (err) {
@@ -361,19 +364,23 @@ class IAPI {
                                 let defaultPreferences = {
                                     
                                 };
-                                let defaultRolePermissions = JSON.parse(this.siteConfig.roles_permissions)[this.siteConfig.register_default_role];
-                                delete defaultRolePermissions["cookie_expire_after"];
-                                let defaultPermissions = mergeJSON(
-                                    {
-                                        "role": this.siteConfig.register_default_role
-                                    },
-                                    defaultRolePermissions
-                                );
+                                /*
+
+                                PRIORIZED TODO:
+
+                                Update role & permission database structure.
+
+                                to be replaced:
+                                defaultRolePermissions
+                                defaultPermissions
+
+                                */
+                                let defaultRoles = this.siteConfig.register_default_role;
                                 try {
                                     this.mysql.query(
-                                        "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, permissions, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                        "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, roles, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                                         [username, nickname, email, password, defaultAvatar, "", 
-                                        JSON.stringify(statisticsPrototype), JSON.stringify(defaultPermissions), JSON.stringify(defaultPreferences)],
+                                        JSON.stringify(statisticsPrototype), defaultRoles, JSON.stringify(defaultPreferences)],
                                         (err, results) => {
                                             if (err) {
                                                 this.log("debug", "IAPI", "Failed to insert user");

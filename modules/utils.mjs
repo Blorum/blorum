@@ -195,6 +195,7 @@ function getPermissionSum(...p){
             isRateLimitContained = true;
             //todo: rate limit merge
         }
+        
     }
     return permSum;
 }
