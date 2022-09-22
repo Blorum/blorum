@@ -27,6 +27,7 @@ function SessionCheckMiddleware(log, redis, iapi){
                         }
                     }
                     if(req.isUserSessionValid){
+                        req.validUserRole = result.roles;
                         req.validUserPermissions = result.permissions;
                         next();
                     }else{

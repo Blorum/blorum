@@ -136,7 +136,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                             })
                         });
                     }else{
-                        let permissionExpireAfter = JSON.parse(siteConfig.roles_permissions)[req.validUserPermissions.role].cookie_expire_after;
+                        let permissionExpireAfter = req.validUserPermissions.permissions.cookie_expire_after;
                         this.redis.set(redisKeyUT, JSON.stringify(req.validUserPermissions.rate_limits), "PX", permissionExpireAfter, (err) => {
                             if(err){
                                 reject({

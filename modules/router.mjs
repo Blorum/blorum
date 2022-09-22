@@ -13,6 +13,17 @@ import { default as SCM } from "./session_check.mjs";
 import { default as STM } from "./statistic.mjs";
 import { default as CSM } from "./cache.mjs";
 
+function rejectForLoginStatusDecorator(func){
+    return function(req, res){
+        if(req.isUserSessionValid){
+            res.status(412).send("You are already logged in.");
+        }else{
+            func(req, res);
+        }
+    }
+}
+
+
 function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
     let getReqInfo = function(req){
         let ip = null;
@@ -181,61 +192,65 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         let b = req.body;
     });
 
-    blorumRouter.post('/user/login', function (req, res) {
-        res.set("Content-Type","application/json");
-        res.set(commonHeader);
-        let b = req.body;
-        let reqInfo = getReqInfo(req);
-        if(objHasAllProperties(b, "username", "password")){
-            if(isAllString(b.username, b.password)){
-                iapi.userLogin(reqInfo.ip, reqInfo.ua, b.username, b.password).then(function(result){
-                    res.set(commonHeader);
-                    let parsedPermission = ""; //Todo
-                    res.cookie("blorum_uid", result.uid, {httpOnly: true});
-                    res.cookie("blorum_token", result.token, {httpOnly: true, secure: true});
-                    res.cookie("blorum_uuid", result.uuid);
-                    res.cookie("blorum_permissions", parsedPermission);
-                    res.status(200).send(result);
-                }).catch(function(err){
-                    res.set(commonHeader);
-                    res.status(500).send(err);
-                });
-            }else{
-                res.sendStatus(400);
-            }
-        }else{
-            res.sendStatus(400);
-        }
-    });
-
-    blorumRouter.post('/user/register', function (req, res) {
-        let b = req.body;
-        let reqInfo = getReqInfo(req);
-        if(objHasAllProperties(b, "username", "password", "email")){
-            if(isAllString(b.username, b.password, b.email, b.nickname)){
-                try {
-                    res.set("Content-Type","application/json");
-                    res.set(commonHeader);
-                    iapi.userRegister(reqInfo.ip, reqInfo.ua, b.username, b.password, b.email, b.nickname).then(function (result) {
-                        res.status(200).send(result);
-                    }).catch(function (error) {
-                        log("debug", "Router", "Failed to register user: " + error);
-                        res.status(500).send(error);
-                    });
-                } catch (error) {
-                    log("debug", "Router", "Failed to register user: " + error);
-                    res.sendStatus(500);
+    blorumRouter.post('/user/login', 
+        rejectForLoginStatusDecorator(
+            function (req, res) {
+                res.set("Content-Type","application/json");
+                res.set(commonHeader);
+                let b = req.body;
+                let reqInfo = getReqInfo(req);
+                if(objHasAllProperties(b, "username", "password")){
+                    if(isAllString(b.username, b.password)){
+                        iapi.userLogin(reqInfo.ip, reqInfo.ua, b.username, b.password).then(function(result){
+                            res.set(commonHeader);
+                            let parsedPermission = ""; //Todo
+                            res.cookie("blorum_uid", result.uid, {httpOnly: true});
+                            res.cookie("blorum_token", result.token, {httpOnly: true});
+                            res.cookie("blorum_uuid", result.uuid);
+                            res.cookie("blorum_permissions", parsedPermission);
+                            res.status(200).send(result);
+                        }).catch(function(err){
+                            res.set(commonHeader);
+                            res.status(500).send(err);
+                        });
+                    }else{
+                        res.sendStatus(400);
+                    }
+                }else{
+                    res.sendStatus(400);
                 }
-            }else{
-                res.sendStatus(400);
-            }
-        }else{
-            res.sendStatus(400);
-        }
-    });
+    }));
+
+    blorumRouter.post('/user/register', 
+        rejectForLoginStatusDecorator(
+            function (req, res) {
+                let b = req.body;
+                let reqInfo = getReqInfo(req);
+                if(objHasAllProperties(b, "username", "password", "email")){
+                    if(isAllString(b.username, b.password, b.email, b.nickname)){
+                        try {
+                            res.set("Content-Type","application/json");
+                            res.set(commonHeader);
+                            iapi.userRegister(reqInfo.ip, reqInfo.ua, b.username, b.password, b.email, b.nickname).then(function (result) {
+                                res.status(200).send(result);
+                            }).catch(function (error) {
+                                log("debug", "Router", "Failed to register user: " + error);
+                                res.status(500).send(error);
+                            });
+                        } catch (error) {
+                            log("debug", "Router", "Failed to register user: " + error);
+                            res.sendStatus(500);
+                        }
+                    }else{
+                        res.sendStatus(400);
+                    }
+                }else{
+                    res.sendStatus(400);
+                }
+    }));
 
     blorumRouter.get('/user/permissions', function (req, res) { 
-        //TODO: permission check;
+        // Todo: permission check and optimization with session_check
         if(req.isUserSessionValid){
             let b = req.body;
             res.set("Content-Type","application/json");

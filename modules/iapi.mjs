@@ -90,9 +90,6 @@ class IAPI {
         });
     }
     getValidUserSession(uid){
-        /*
-        PRIORIZED TODO: userPermissions replacement
-        */
         return new Promise(async (resolve, reject) => {
             try {
                 let currentSessions = await this.getUserSession(uid);
@@ -218,6 +215,7 @@ class IAPI {
     }
     //Actual service functions
     userLogin(ip, ua, username, password) {
+        //Assume that user don't have login status, don't use session_check middleware optimization.
         return new Promise(async (resolve, reject) => {
             password = blake3Hash(this.salt + password);
             this.mysql.query(
@@ -327,6 +325,7 @@ class IAPI {
         });
     }
     userRegister(ip, ua, username, password, email, nickname) {
+        //Assume that user don't have login status, don't use session_check middleware optimization.
         return new Promise((resolve, reject) => {
             if (!basicPasswordRequirement(password)) {
                 reject("Password does not meet basic requirements(> 8 characters, contains at least one number, one letter)");
