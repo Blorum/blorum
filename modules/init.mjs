@@ -19,10 +19,9 @@ function initializeBlorumServer() {
         if (err) throw err;
     }));
     var log = function (level, context, info) {
+        var output = outputLogs;
         if (bootConfig.logs.colored) {
-            var output = outputLogsColored;
-        } else {
-            var output = outputLogs;
+            output = outputLogsColored;
         }
         if (bootConfig.logs.level === "debug") {
             output(level, context, info);

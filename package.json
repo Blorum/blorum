@@ -38,5 +38,8 @@
     "slow-json-stringify": "^2.0.1",
     "uuid": "^8.3.2",
     "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "eslint": "^8.23.1"
   }
 }

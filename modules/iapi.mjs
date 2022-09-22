@@ -90,42 +90,51 @@ class IAPI {
         });
     }
     getValidUserSession(uid){
-        return new Promise(async (resolve, reject) => {
-            try {
-                let currentSessions = await this.getUserSession(uid);
+        return new Promise((resolve, reject) => {
+            this.getUserSession(uid).then((currentSessions) => {
                 if(currentSessions.length > 0){
-                    let userRoles = await this.getUserRoles(uid);
-                    let rolePermList = [];
-                    let promisePool = [];
-                    for(const role of userRoles){
-                        promisePool.push(this.getRolePermissions(role));
-                    }
-                    Promise.allSettled(promisePool).then((results) => {
-                        rolePermList = results;
+                    this.getUserRoles(uid).then((userRoles) => {
+                        let rolePermList = [];
+                        let promisePool = [];
+                        for(const role of userRoles){
+                            promisePool.push(this.getRolePermissions(role));
+                        }
+                        Promise.allSettled(promisePool).then((results) => {
+                            rolePermList = results;
+                        });
+                        let permissionSum = getPermissionSum(rolePermList);
+                        this.removeExpiredSessions(uid, permissionSum.permissions.cookie_expire_after, currentSessions).then((removedSessions) => {
+                            this.getUserSession(uid).then((finalSessions) => {
+                                if(finalSessions.length > 0){
+                                    resolve({
+                                        "sessions": finalSessions,
+                                        "permissions": permissionSum,
+                                        "roles": userRoles,
+                                        "removed_sessions": removedSessions
+                                    });
+                                }else{
+                                    resolve({
+                                        "sessions": []
+                                    });
+                                }
+                            }).catch((err) => {
+                                reject(err);
+                            });
+                        }).catch((err) => {
+                            reject(err);
+                        });
+                    }).catch((err) => {
+                        reject(err);
                     });
-                    let permissionSum = getPermissionSum(rolePermList);
-                    let removedSessionsCount = await this.removeExpiredSessions(uid, permissionSum.permissions.cookie_expire_after, currentSessions);
-                    let finalSessions = await this.getUserSession(uid);
-                    if(finalSessions.length > 0){
-                        resolve({
-                            "sessions": finalSessions,
-                            "permissions": permissionSum,
-                            "roles": userRoles,
-                            "removed_sessions": removedSessionsCount
-                        });
-                    }else{
-                        resolve({
-                            "sessions": []
-                        });
-                    }
                 }else{
                     resolve({
                         "sessions": []
                     });
                 }
-            } catch (error) {
-                reject(error);
-            }
+            }).catch((err) => {
+                this.log("debug", "IAPI", "Failed to get valid user session: " + err);
+                reject(err);
+            });
         });
     }
     getRolePermissions(role){
@@ -187,41 +196,43 @@ class IAPI {
         });
     }
     getUserPermissions(uid){
-        return new Promise(async (resolve, reject) => {
-            let userRoles = await this.getUserRoles(uid);
-            if(userRoles == null){
-                reject("User not found in database.");
-            }else if(typeof userRoles === "object" && userRoles[0] == ""){
-                reject("User has no roles.");
-            }else{
-                let promisePool = [];
-                for(const element of userRoles){
-                    promisePool.push(new Promise((resolve, reject) => {
-                        this.getRolePermissions(element).then((results) => {
-                            resolve(results);
-                        }).catch((err) => {
-                            reject(err);
-                        });
-                    }));
+        return new Promise((resolve, reject) => {
+            this.getUserRoles(uid).then((userRoles) => {
+                if(userRoles == null){
+                    reject("User not found in database.");
+                }else if(typeof userRoles === "object" && userRoles[0] == ""){
+                    reject("User has no roles.");
+                }else{
+                    let promisePool = [];
+                    for(const element of userRoles){
+                        promisePool.push(new Promise((resolve, reject) => {
+                            this.getRolePermissions(element).then((results) => {
+                                resolve(results);
+                            }).catch((err) => {
+                                reject(err);
+                            });
+                        }));
+                    }
+                    Promise.allSettled(promisePool).then((results) => {
+                        let permissions = getPermissionSum(results);
+                        resolve(permissions);
+                    }).catch((err) => {
+                        reject(err);
+                    });
                 }
-                Promise.allSettled(promisePool).then((results) => {
-                    let permissions = getPermissionSum(results);
-                    resolve(permissions);
-                }).catch((err) => {
-                    reject(err);
-                });
-            }
+            }).catch((err) => {
+                reject(err);
+            });
         });
     }
     //Actual service functions
     userLogin(ip, ua, username, password) {
         //Assume that user don't have login status, don't use session_check middleware optimization.
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             password = blake3Hash(this.salt + password);
             this.mysql.query(
                 "SELECT uid,password,roles FROM users WHERE username = ?",
-                [username],
-                async (err, results) => {
+                [username], (err, results) => {
                     if (err) {
                         this.log("debug", "IAPI", "Failed to query database");
                         reject(err);
