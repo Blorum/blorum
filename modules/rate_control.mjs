@@ -1,4 +1,4 @@
-import parse from "json5";
+import parse from "simdjson";
 JSON.parse = parse.parse;
 
 import { pureArray } from "./utils.mjs";

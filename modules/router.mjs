@@ -1,4 +1,4 @@
-import parse from "json5";
+import parse from "simdjson";
 JSON.parse = parse.parse;
 
 import { default as express } from "express";
@@ -95,6 +95,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
+    //to be removed in the future
     blorumRouter.get('/debug', function(req, res){
         if(req.isUserSessionValid){
             console.log(req.isUserSessionValid);
@@ -106,8 +107,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         res.sendStatus(200);
     });
 
-    //Future todo: blorux
-    blorumRouter.get('/blorux/reload_site_config', function(req, res){
+    blorumRouter.post('/reload_site_config', function(req, res){
         
     });
 
@@ -131,7 +131,12 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.get('/statics/*', function(req, res){
-        // PRIORIZED TODO: FIX .. ESCAPE
+        //filter out ../ to prevent path traversal
+        if(req.path.includes("../")){
+            res.set(commonHeader);
+            res.sendStatus(403);
+            return;
+        }
         let path = req.params[0];
         let __dirname = fileURLToPath(import.meta.url);
         let filePath = join(__dirname, '..', '..','statics', path);
@@ -187,7 +192,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                     res.set(commonHeader);
                     let parsedPermission = ""; //Todo
                     res.cookie("blorum_uid", result.uid, {httpOnly: true});
-                    res.cookie("blorum_token", result.token, {httpOnly: true});
+                    res.cookie("blorum_token", result.token, {httpOnly: true, secure: true});
                     res.cookie("blorum_uuid", result.uuid);
                     res.cookie("blorum_permissions", parsedPermission);
                     res.status(200).send(result);

@@ -1,6 +1,8 @@
 import { default as blake3 } from "blake3";
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
+import parse from "simdjson";
+JSON.parse = parse.parse;
 
 const version = "1.0.0 in_dev (unf, debug) dv 10007";
 const innerVersion = "10000000";
@@ -186,7 +188,7 @@ function mergeArray(...args){
     return Array.from(new Set(args.reduce((a, b) => a.concat(b))));
 }
         
-function getPermissionSum(...p){
+function getPermissionSum(arr){
     //return the greatest permissions of all given role permissions
     let permSum = {
         "with_rate_limit": 0,
@@ -194,18 +196,21 @@ function getPermissionSum(...p){
             "flags": [],
             "max_session": 10,
             "cookie_expire_after": 13150000000
+        },
+        "rate_limits": {
+
         }
-    };
+    }; //Permission fallback
     let isRateLimitContained = false;
-    for(const perm of p){
+    for(const perm of arr){
         if(perm.with_rate_limit == 1){
-            if(!isRateLimitContained){
-                p.rate_limits = perm.rate_limits;
-            }
             isRateLimitContained = true;
             //todo: rate limit merge
         }
-        
+        // console.log(perm);
+        // if(perm.permissions.max_session > permSum.permissions.max_session){
+        //     permSum.permissions.max_session = perm.permissions.max_session;
+        // }
     }
     return permSum;
 }
@@ -214,5 +219,5 @@ export {
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON, cookieParser, pureArray, filterSpace, getPermissionSum
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum
 };

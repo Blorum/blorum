@@ -1,4 +1,4 @@
-import parse from "json5";
+import parse from "simdjson";
 JSON.parse = parse.parse;
 
 import {
@@ -90,17 +90,30 @@ class IAPI {
         });
     }
     getValidUserSession(uid){
+        /*
+        PRIORIZED TODO: userPermissions replacement
+        */
         return new Promise(async (resolve, reject) => {
             try {
                 let currentSessions = await this.getUserSession(uid);
                 if(currentSessions.length > 0){
-                    let userPermissions = await this.getUserPermissions(uid);
-                    let removedSessionsCount = await this.removeExpiredSessions(uid, JSON.parse(this.siteConfig["roles_permissions"])[userPermissions.role]["cookie_expire_after"], currentSessions);
+                    let userRoles = await this.getUserRoles(uid);
+                    let rolePermList = [];
+                    let promisePool = [];
+                    for(const role of userRoles){
+                        promisePool.push(this.getRolePermissions(role));
+                    }
+                    Promise.allSettled(promisePool).then((results) => {
+                        rolePermList = results;
+                    });
+                    let permissionSum = getPermissionSum(rolePermList);
+                    let removedSessionsCount = await this.removeExpiredSessions(uid, permissionSum.permissions.cookie_expire_after, currentSessions);
                     let finalSessions = await this.getUserSession(uid);
                     if(finalSessions.length > 0){
                         resolve({
                             "sessions": finalSessions,
-                            "permissions": userPermissions,
+                            "permissions": permissionSum,
+                            "roles": userRoles,
                             "removed_sessions": removedSessionsCount
                         });
                     }else{
@@ -124,7 +137,7 @@ class IAPI {
                 if(err){
                     reject(err);
                 }else{
-                    resolve(results);
+                    resolve(JSON.parse(results));
                 }
             });
         });
@@ -152,10 +165,10 @@ class IAPI {
                         }
                     );
                 }else{
-                    resolve(JSON.parse(results));
+                    resolve(results.split(","));
                 }
             }).catch((err) => {
-                this.log("debug", "IAPI", "Failed to get user roles from redis.");
+                this.log("debug", "IAPI", "Failed to get user roles from redis: " + err);
                 this.mysql.query(
                     "SELECT roles FROM users WHERE uid = ?",
                     [uid],
@@ -223,8 +236,7 @@ class IAPI {
                             if (user.password === password) {
                                 let newToken = generateNewToken(this.salt, username);
                                 let userRole = user.roles.split(",");
-                                let redisKey = this.rp + ":user_session:" + user.uid;
-                                let cookie_expire_after = Infinity;
+                                let sessionRedisKey = this.rp + ":user_session:" + user.uid;
 
                                 let permissionList = [];
                                 let permissionRedisPromisePool = [];
@@ -235,48 +247,33 @@ class IAPI {
                                         })
                                     );  
                                 }
-                                var permissionSum;
                                 Promise.all(permissionRedisPromisePool).then(() => {
-                                    permissionSum = getPermissionSum(permissionList);
-                                    let cookit_expire_after = permissionSum.permissions.cookie_expire_after;
+                                    
+                                    let permissionSum = getPermissionSum(permissionList);
+                                    let cookie_expire_after = permissionSum.permissions.cookie_expire_after;
                                     let tokenBucketRedisKey = this.rp + ":user_token_bucket:" + user.uid;
                                     /*
                                     TODO:
                                     
                                     User token bucket not re-implemented yet!
                                     */
-                                    
-                                    /*
-    
-                                    PRIORIZED TODO:
-    
-                                    Rewritting permission database structure, all userPermissions need to be replaced. Thanks great winslow.
-                                    
-                                    */
-
-                                    /*
-                                    
-                                    Winslow, please stop messin' up the db structure.
-                                                                            
-                                                                                    -Winslow
-
-                                    */
                                     if(permissionSum.with_rate_limit){
     
                                     }else{
-                                        //user don't have a rate limit, use fallback rate limit and prompt both user & admin an system error log.
+                                        //user don't have a rate limit, use fallback rate limit(added by getPermissionSum) and prompt both user & admin an system error log.
 
                                         //TODO: update log db structure and add "level"
                                     }
-                                    let permissionsRedisKey = this.rp + ":user_roles:" + user.uid;
-                                    this.redis.set(permissionsRedisKey, JSON.stringify(permissionSum), (err, results) => {
+
+                                    let rolesRedisKey = this.rp + ":user_roles:" + user.uid;
+                                    this.redis.set(rolesRedisKey, userRole, (err, results) => {
                                         if (err) {
-                                            this.log("debug", "IAPI", "Failed to set redis key: " + permissionsRedisKey);
+                                            this.log("debug", "IAPI", "Failed to set redis key: " + rolesRedisKey);
                                             reject(err);
                                         } else {
-                                            this.redis.pexpire(permissionsRedisKey, cookit_expire_after, (err, results) => {
+                                            this.redis.pexpire(rolesRedisKey, cookie_expire_after, (err, results) => {
                                                 if (err) {
-                                                    this.log("debug", "IAPI", "Failed to set redis key expire: " + permissionsRedisKey);
+                                                    this.log("debug", "IAPI", "Failed to set redis key expire: " + rolesRedisKey);
                                                     reject(err);
                                                 }
                                             });
@@ -292,13 +289,13 @@ class IAPI {
                                             "ip": ip
                                         }
                                     });
-                                    this.redis.lrange(redisKey, 0, -1, (err, results) => {
-                                        this.removeExpiredSessions(user.uid, userPermissions.cookie_expire_after, results).then((removedSessions) => {
-                                            if(results.length - removedSessions >= userPermissions.max_session){
+                                    this.redis.lrange(sessionRedisKey, 0, -1, (err, results) => {
+                                        this.removeExpiredSessions(user.uid, permissionSum.permissions.cookie_expire_after, results).then((removedSessions) => {
+                                            if(results.length - removedSessions >= permissionSum.permissions.max_session){
                                                 this.log("debug", "IAPI", "Removed " + removedSessions + " expired sessions from redis");
                                                 reject("You have reached the maximum number of sessions.");
                                             }else{
-                                                this.redis.lpush(redisKey,finalSession, (err, results) => {
+                                                this.redis.lpush(sessionRedisKey,finalSession, (err, results) => {
                                                     if (err) {
                                                         this.log("debug", "IAPI", "Failed to push user session to redis");
                                                         reject(err);
@@ -308,7 +305,7 @@ class IAPI {
                                                             "uid": user.uid,
                                                             "uuid": uuid,
                                                             "role": userRole,
-                                                            "permissions": userPermissions.permissions,
+                                                            "permissions": permissionSum,
                                                             "token": newToken
                                                         });
                                                     }
