@@ -52,7 +52,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
             });
         };
         let IPRateLimitChecker = () => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 if(reqInfo.ip.substring(0, 7) === "::ffff:"){
                     reqInfo.ip = reqInfo.ip.substring(7, reqInfo.ip.length);
                 }
@@ -61,28 +61,35 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                 //     return true;
                 // }else{
                     let redisKeyIT = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
-                    try {
-                        let result = await iapi.getRedisKeyIfExists(redisKeyIT);
+                    iapi.getRedisKeyIfExists(redisKeyIT).then((result) => {
                         if(result !== null){
-                            let IPTokenBucket = JSON.parse(result);
-                            let TTLLeft = await this.redis.pttl(redisKeyIT);
-                            judger(reqPath, reqMethod, IPTokenBucket).then((result) => {
-                                //update with result.newBucket
-                                this.redis.set(redisKeyIT, JSON.stringify(result.newBucket), "PX", TTLLeft, (err, res) => {
-                                    if(err){
-                                        reject({
-                                            "status": 500,
-                                            "message": "error when update IP token bucket."
-                                        });
-                                    }else{
-                                        resolve();
-                                    }
+                            this.redis.pttl(redisKeyIT).then((TTLLeft) => {
+                                let IPTokenBucket = JSON.parse(result);
+                                judger(reqPath, reqMethod, IPTokenBucket).then((result) => {
+                                    //update with result.newBucket
+                                    this.redis.set(redisKeyIT, JSON.stringify(result.newBucket), "PX", TTLLeft, (err, res) => {
+                                        if(err){
+                                            reject({
+                                                "status": 500,
+                                                "message": "error when update IP token bucket."
+                                            });
+                                        }else{
+                                            resolve();
+                                        }
+                                    });
+                                }).catch((err) => {
+                                    reject({
+                                        "status": 429,
+                                        "message": "Rate limit exceed."
+                                    })
                                 });
                             }).catch((err) => {
+                                this.log("error", "RateControl", "Failed to get TTL of IP token bucket.");
+                                this.log("error", "RateControl", err);
                                 reject({
-                                    "status": 429,
-                                    "message": "Rate limit exceed."
-                                })
+                                    "status": 500,
+                                    "message": "Failed to get TTL of IP token bucket."
+                                });
                             });
                         }else{
                             let newBucket = this.ipRateLimits;
@@ -98,42 +105,50 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                                     }
                                 });
                         }
-                    }catch (error){
-                        this.log("error", "RateControl/IP", error);
+                    }).catch((err) => {
+                        log("error", "RateControl", "Failed to get IP token bucket.");
+                        log("error", "RateControl", err);
                         reject({
                             "status": 500,
-                            "message": error
+                            "message": "Failed to create IP token bucket."
                         });
-                    }
+                    });
                 // }
             });
         };
 
         let userRateLimitChecker = () => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 let redisKeyUT = iapi.rp + ":user_token_bucket:" + req.validUserID;
-                try {
-                    let result = await iapi.getRedisKeyIfExists(redisKeyUT);
-                    let TTLLeft = await this.redis.pttl(redisKeyUT);
+                iapi.getRedisKeyIfExists(redisKeyUT).then((result) => {
                     if(result !== null){
-                        let userTokenBucket = JSON.parse(result);
-                        judger(reqPath, reqMethod, userTokenBucket).then((result) => {
-                            //update with result.newBucket
-                            this.redis.set(redisKeyUT, JSON.stringify(result.newBucket), "PX", TTLLeft, (err, res) => {
-                                if(err){
-                                    reject({
-                                        "status": 500,
-                                        "message": "error when update user token bucket."
-                                    });
-                                }else{
-                                    resolve();
-                                }
+                        this.redis.pttl(redisKeyUT).then((TTLLeft) => {
+                            let userTokenBucket = JSON.parse(result);
+                            judger(reqPath, reqMethod, userTokenBucket).then((result) => {
+                                //update with result.newBucket
+                                this.redis.set(redisKeyUT, JSON.stringify(result.newBucket), "PX", TTLLeft, (err, res) => {
+                                    if(err){
+                                        reject({
+                                            "status": 500,
+                                            "message": "error when update user token bucket."
+                                        });
+                                    }else{
+                                        resolve();
+                                    }
+                                });
+                            }).catch((err) => {
+                                reject({
+                                    "status": 429,
+                                    "message": "Rate limit exceed."
+                                })
                             });
                         }).catch((err) => {
+                            this.log("error", "RateControl", "Failed to get TTL of user token bucket.");
+                            this.log("error", "RateControl", err);
                             reject({
-                                "status": 429,
-                                "message": "Rate limit exceed."
-                            })
+                                "status": 500,
+                                "message": "Failed to get TTL of user token bucket."
+                            });
                         });
                     }else{
                         let permissionExpireAfter = req.validUserPermissions.permissions.cookie_expire_after;
@@ -148,13 +163,11 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                             }
                         });
                     }
-                } catch (error) {
-                    this.log("error", "RateControl/user", error);
-                    reject({
-                        "status": 500,
-                        "message": error
-                    });
-                }
+                }).catch((err) => {
+                    this.log("error", "RateControl", "Failed to get user token bucket.");
+                    this.log("error", "RateControl", err);
+                    reject(err);
+                });
             });
         }
 
