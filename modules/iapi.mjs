@@ -387,26 +387,24 @@ class IAPI {
                                     
                                 };
                                 let defaultRoles = this.siteConfig.register_default_role;
-                                try {
-                                    this.mysql.query(
-                                        "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, roles, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                        [username, nickname, email, password, defaultAvatar, "", 
-                                        JSON.stringify(statisticsPrototype), defaultRoles, JSON.stringify(defaultPreferences)],
-                                        (err, results) => {
-                                            if (err) {
-                                                this.log("debug", "IAPI", "Failed to insert user");
-                                                reject(err);
-                                            } else {
-                                                this.log("debug", "IAPI", "User registered: " + username);
-                                                resolve({
-                                                    "uid": results.insertId
-                                                });
-                                            }
+                                this.mysql.query(
+                                    "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, roles, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                    [username, nickname, email, password, defaultAvatar, "", 
+                                    JSON.stringify(statisticsPrototype), defaultRoles, JSON.stringify(defaultPreferences)],
+                                    (err, results) => {
+                                        if (err) {
+                                        this.log("debug", "IAPI", "Failed to insert user");
+                                            reject(err);
+                                        } else {
+                                            this.log("debug", "IAPI", "User registered: " + username);
+                                            resolve({
+                                                "uid": results.insertId
+                                            });
                                         }
-                                    );
-                                } catch (error) {
-                                    reject(error);
-                                }
+                                    }
+                                ).catch((err) => {
+                                    reject(err);
+                                });
                             } else {
                                 this.log("debug", "IAPI", "User already exists: " + username);
                                 reject("User already exists");
@@ -449,6 +447,9 @@ class IAPI {
                 reject(err);
             });
         });
+    }
+    LogInsert(content, level){
+        //TODO
     }
 }
 

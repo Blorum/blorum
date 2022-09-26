@@ -190,17 +190,67 @@ function mergeArray(...args){
         
 function getPermissionSum(arr){
     //return the greatest permissions of all given role permissions
+
+    //permSum is also the permission fallback, 
+    //any permissions given to the user will override the permSum
     let permSum = {
         "with_rate_limit": 0,
         "permissions": {
             "flags": [],
             "max_session": 10,
-            "cookie_expire_after": 13150000000
+            "cookie_expire_after": 13150000000,
+            "user": {
+                "permission": {
+                    "read": 0
+                },
+                "role": {
+                    // "read": {
+                    //     "default": 0
+                    // }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0
+                },
+                "grant": {
+                    "default": 0
+                },
+                "remove": {
+                    "default": 0
+                },
+            }, 
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+
+                    },
+                    "tag": {
+
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+
+                    },
+                    "tag": {
+
+                    }  
+                }
+            },
+            "post":{},
+            "comment": {},
+            "report": {},
+            "log": {
+                "read": 0
+            }
         },
         "rate_limits": {
 
         }
-    }; //Permission fallback
+    };
     let isRateLimitContained = false;
     for(const perm of arr){
         if(perm.with_rate_limit == 1){

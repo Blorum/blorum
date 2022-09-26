@@ -250,20 +250,30 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     }));
 
     blorumRouter.get('/user/permissions', function (req, res) { 
-        // Todo: permission check and optimization with session_check
         if(req.isUserSessionValid){
-            let b = req.body;
             res.set("Content-Type","application/json");
             res.set(commonHeader);
-            iapi.getUserPermissions(b.uid).then((result) => {
-                if(result == null){
-                    res.status(404).send();
-                }else{
-                    res.status(200).send(result);
+            let b = req.body;
+            let permissionLevel = req.validUserPermissions.permissions.user.permission.read;
+            if(typeof b.uid === "number"){
+                switch(permissionLevel){
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    default:
+                        //Todo: Generate a error log [TODO_LOG]
+                    case 0:
+                        if(b.uid == req.validUserID){
+                             //Todo: filter permissions returned
+                            res.status(200).send(req.validUserPermissions);
+                        }else{
+                            res.sendStatus(403);
+                        }
                 }
-            }).catch((err) => {
-                res.status(500).send(err);
-            });
+            }else{
+                res.sendStatus(400);
+            }
         }else{
             res.sendStatus(401);
         }
