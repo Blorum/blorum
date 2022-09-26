@@ -1,9 +1,8 @@
-CREATE DATABASE IF NOT EXISTS blorum;
-use blorum;
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
+SET time_zone = "+00:00";
 
+SET @@auto_increment_increment=1;
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -168,6 +167,7 @@ CREATE TABLE `forum` (
 CREATE TABLE `log` (
   `lid` int(10) UNSIGNED NOT NULL,
   `uid` int(10) UNSIGNED NOT NULL,
+  `level` tinyint(4) NOT NULL DEFAULT '1',
   `content` json NOT NULL,
   `timestamp` bigint(20) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -370,7 +370,8 @@ ALTER TABLE `forum`
 --
 ALTER TABLE `log`
   ADD PRIMARY KEY (`lid`) USING BTREE,
-  ADD KEY `uid` (`uid`);
+  ADD KEY `uid` (`uid`),
+  ADD KEY `level` (`level`);
 
 --
 -- Indexes for table `messages`
@@ -428,13 +429,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `articles`
 --
 ALTER TABLE `articles`
-  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `comments_a`
 --
 ALTER TABLE `comments_a`
-  MODIFY `cid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `cid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `comments_p`
@@ -470,7 +471,7 @@ ALTER TABLE `log`
 -- AUTO_INCREMENT for table `notes`
 --
 ALTER TABLE `notes`
-  MODIFY `nid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `nid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `posts`
@@ -488,7 +489,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `uid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `uid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

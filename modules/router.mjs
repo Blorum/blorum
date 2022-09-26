@@ -269,6 +269,10 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
+    blorumRouter.post('/user/permissions', function(req, res) {
+        //Todo: set user permission API
+    });
+
     blorumRouter.post('/user/logout', function (req, res) {
         if(req.isUserSessionValid){
             let b = req.body;
@@ -290,6 +294,9 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.get('/user/sessionList', function (req, res) {
+
+        //Todo: filter the token, add permission check
+        
         if(req.isUserSessionValid){
             let b = req.body;
             res.set("Content-Type","application/json");
