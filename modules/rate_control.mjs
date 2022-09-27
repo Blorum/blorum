@@ -1,6 +1,7 @@
 import parse from "simdjson";
 JSON.parse = parse.parse;
 
+
 import { pureArray } from "./utils.mjs";
 
 function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {

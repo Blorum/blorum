@@ -8,6 +8,8 @@ import {
 } from "./utils.mjs";
 import { v4 as uuidv4 } from 'uuid';
 
+import stringify from "quick-stable-stringify";
+
 class IAPI {
     constructor(mysql, redis, siteConfig, log, salt, redisPrefix) {
         this.mysql = mysql;
@@ -289,7 +291,7 @@ class IAPI {
                                         }
                                     });
                                     let uuid = uuidv4();
-                                    let finalSession = JSON.stringify({
+                                    let finalSession = stringify({
                                         "token": newToken,
                                         "uuid": uuid,
                                         "statistics": {
@@ -390,7 +392,7 @@ class IAPI {
                                 this.mysql.query(
                                     "INSERT INTO users (username, nickname, email, password, avatar, about, statistics, roles, preferences) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                                     [username, nickname, email, password, defaultAvatar, "", 
-                                    JSON.stringify(statisticsPrototype), defaultRoles, JSON.stringify(defaultPreferences)],
+                                    stringify(statisticsPrototype), defaultRoles, stringify(defaultPreferences)],
                                     (err, results) => {
                                         if (err) {
                                         this.log("debug", "IAPI", "Failed to insert user");
@@ -401,9 +403,6 @@ class IAPI {
                                                 "uid": results.insertId
                                             });
                                         }
-                                    }
-                                ).catch((err) => {
-                                    reject(err);
                                 });
                             } else {
                                 this.log("debug", "IAPI", "User already exists: " + username);
@@ -448,8 +447,70 @@ class IAPI {
             });
         });
     }
-    LogInsert(content, level){
-        //TODO
+    logInsert(uid, content, level){
+        return new Promise((resolve, reject) => {
+            this.mysql.query(
+                "INSERT INTO logs (uid, content, level, timestamp) VALUES (?, ?, ?)",
+                [uid, content, level, this.timestamp()],
+                (err, results) => {
+                    if(err){
+                        reject(err);
+                    }else{
+                        resolve();
+                    }
+                });
+        });
+    }
+    logGet(uid, time_range, level){
+        //if any constraint is null, it will be ignored.
+        return new Promise((resolve, reject) => {
+            let queryProto = "SELECT * FROM logs ";
+            let constraint = {
+                "uid": [],
+                "level": []
+            };
+            if(uid == null || time_range == null || level == null){
+                this.mysql.query(queryProto + ";", (err, results) => {
+                    if(err){
+                        reject(err);
+                    }else{
+                        resolve(results);
+                    }
+                });
+            }else{
+                if(uid != null){
+                    for(var i = 0; i < uid.length; i++){
+                        constraint.uid.push("uid = " + uid[i]);
+                    }
+                }
+                if(level != null){
+                    for(var i = 0; i < level.length; i++){
+                        constraint.level.push("level = " + level[i]);
+                    }
+                }
+                let finalList = [];
+                let finalConstraint = "";
+                if(constraint.uid.length > 0){
+                    finalList.push("(" + constraint.uid.join(" OR ") + ")");
+                }
+                if(constraint.level.length > 0){
+                    finalList.push("(" + constraint.level.join(" OR ") + ")");
+                }
+                if(time_range != null){
+                    finalList.push("timestamp BETWEEN " + time_range[0] + " AND " + time_range[1]);
+                }
+                if(finalList.length > 0){
+                    finalConstraint = " WHERE " + finalList.join(" AND ");
+                }
+                this.mysql.query(queryProto + constraint + ";", (err, results) => {
+                    if(err){
+                        reject(err);
+                    }else{
+                        resolve(results);
+                    }
+                });
+            }
+        });
     }
 }
 

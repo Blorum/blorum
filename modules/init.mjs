@@ -5,6 +5,7 @@ import { outputLogsColored, outputLogs } from "./utils.mjs";
 import { default as mysql } from "mysql2";
 import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 
+import stringify from "quick-stable-stringify";
 
 function MysqlIntegrityCheck(mysqlConnection) {
     return new Promise((resolve, reject) => {
@@ -88,7 +89,7 @@ function initializeBlorumServer() {
                                         try {
                                             let keyName = redisKey + element.name;
                                             delete element.name;
-                                            redisConn.set(keyName, JSON.stringify(element)); 
+                                            redisConn.set(keyName, stringify(element)); 
                                         } catch (error) {
                                             log("error", "INIT/db/redis", "Failed to set role in redis.");
                                             reject(error);

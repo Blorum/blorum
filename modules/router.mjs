@@ -1,6 +1,7 @@
 import parse from "simdjson";
 JSON.parse = parse.parse;
 
+
 import { default as express } from "express";
 import { version, innerVersion, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
 import { IAPI } from "./iapi.mjs";
@@ -255,7 +256,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
             res.set(commonHeader);
             let b = req.body;
             let permissionLevel = req.validUserPermissions.permissions.user.permission.read;
-            if(typeof b.uid === "number"){
+            if(!isNaN(b.uid)){
                 switch(permissionLevel){
                     case 1:
                         break;
