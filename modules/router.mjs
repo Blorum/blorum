@@ -13,6 +13,7 @@ import { default as RCM } from "./rate_control.mjs";
 import { default as SCM } from "./session_check.mjs";
 import { default as STM } from "./statistic.mjs";
 import { default as CSM } from "./cache.mjs";
+import { stringify } from "querystring";
 
 function rejectForLoginStatusDecorator(func){
     return function(req, res){
@@ -259,11 +260,27 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
             if(!isNaN(b.uid)){
                 switch(permissionLevel){
                     case 1:
+                        iapi.getUserPermissions(b.uid).then((result) => {
+                            if(result.permissions.flags.indexOf("administrative") == -1){
+                                res.sendStatus(403);
+                            }else{
+                                res.status(200).send(stringify(result));
+                            }
+                        });
                         break;
                     case 2:
+                        iapi.getUserPermissions(b.uid).then((result) => {
+                            res.status(200).send(stringify(result));
+                        });
                         break;
                     default:
-                        //Todo: Generate a error log [TODO_LOG]
+                        iapi.logInsert(
+                            req.validUserID,
+                            stringify({
+                                "message": "User don't have a valid permission level of \"user.permission.read\""
+                            }),
+                            3
+                        );
                     case 0:
                         if(b.uid == req.validUserID){
                              //Todo: filter permissions returned

@@ -251,6 +251,7 @@ function getPermissionSum(arr){
 
         }
     };
+    //todo: flag merge with new Set
     let isRateLimitContained = false;
     for(const perm of arr){
         if(perm.with_rate_limit == 1){

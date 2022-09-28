@@ -469,6 +469,7 @@ class IAPI {
                 "uid": [],
                 "level": []
             };
+            //todo: make constraints a Set
             if(uid == null || time_range == null || level == null){
                 this.mysql.query(queryProto + ";", (err, results) => {
                     if(err){
@@ -511,6 +512,15 @@ class IAPI {
                 });
             }
         });
+    }
+    createArticle(){
+
+    }
+    alterArticle(){
+
+    }
+    deleteArticle(){
+
     }
 }
 
