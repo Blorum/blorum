@@ -187,7 +187,7 @@ function pureArray(arr){
 function mergeArray(...args){
     return Array.from(new Set(args.reduce((a, b) => a.concat(b))));
 }
-        
+
 function getPermissionSum(arr){
     //return the greatest permissions of all given role permissions
 
@@ -251,9 +251,12 @@ function getPermissionSum(arr){
 
         }
     };
-    //todo: flag merge with new Set
+    let flagSet = new Set();
     let isRateLimitContained = false;
     for(const perm of arr){
+        perm.permissions.flags.forEach(element => {
+            flagSet.join(element);
+        });
         if(perm.with_rate_limit == 1){
             isRateLimitContained = true;
             //todo: rate limit merge
@@ -263,6 +266,7 @@ function getPermissionSum(arr){
         //     permSum.permissions.max_session = perm.permissions.max_session;
         // }
     }
+    permSum.permissions.flags = Array.from(flagSet);
     return permSum;
 }
 

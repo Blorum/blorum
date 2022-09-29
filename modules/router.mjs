@@ -276,9 +276,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
                     default:
                         iapi.logInsert(
                             req.validUserID,
-                            stringify({
-                                "message": "User don't have a valid permission level of \"user.permission.read\""
-                            }),
+                            "User don't have a valid permission level of \"user.permission.read\"",
                             3
                         );
                     case 0:

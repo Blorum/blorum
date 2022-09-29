@@ -197,6 +197,12 @@ class IAPI {
             });
         });
     }
+    modifyUserRole(uid, action){ //todo
+        return new Promise((resolve, reject) => {
+            //Action param structure: 
+            //A list of {role: "role", action: "add/remove"}
+        });
+    }
     getUserPermissions(uid){
         return new Promise((resolve, reject) => {
             this.getUserRoles(uid).then((userRoles) => {
@@ -450,8 +456,10 @@ class IAPI {
     logInsert(uid, content, level){
         return new Promise((resolve, reject) => {
             this.mysql.query(
-                "INSERT INTO logs (uid, content, level, timestamp) VALUES (?, ?, ?)",
-                [uid, content, level, this.timestamp()],
+                "INSERT INTO logs (uid, content, level, timestamp) VALUES (?, ?, ?, ?)",
+                [uid, stringify({
+                    "message": content //I know this JSON is redundant, but it's for future extensibility.
+                }), level, this.timestamp()],
                 (err, results) => {
                     if(err){
                         reject(err);
@@ -466,10 +474,9 @@ class IAPI {
         return new Promise((resolve, reject) => {
             let queryProto = "SELECT * FROM logs ";
             let constraint = {
-                "uid": [],
-                "level": []
+                "uid": new Set(),
+                "level": new Set()
             };
-            //todo: make constraints a Set
             if(uid == null || time_range == null || level == null){
                 this.mysql.query(queryProto + ";", (err, results) => {
                     if(err){
@@ -481,14 +488,16 @@ class IAPI {
             }else{
                 if(uid != null){
                     for(var i = 0; i < uid.length; i++){
-                        constraint.uid.push("uid = " + uid[i]);
+                        constraint.uid.add("uid = " + uid[i]);
                     }
                 }
                 if(level != null){
                     for(var i = 0; i < level.length; i++){
-                        constraint.level.push("level = " + level[i]);
+                        constraint.level.add("level = " + level[i]);
                     }
                 }
+                constraint.uid = Array.from(constraint.uid);
+                constraint.level = Array.from(constraint.level);
                 let finalList = [];
                 let finalConstraint = "";
                 if(constraint.uid.length > 0){
