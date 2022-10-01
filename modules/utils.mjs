@@ -255,7 +255,7 @@ function getPermissionSum(arr){
     let isRateLimitContained = false;
     for(const perm of arr){
         perm.permissions.flags.forEach(element => {
-            flagSet.join(element);
+            flagSet.add(element);
         });
         if(perm.with_rate_limit == 1){
             isRateLimitContained = true;

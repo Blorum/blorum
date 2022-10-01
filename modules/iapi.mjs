@@ -96,34 +96,32 @@ class IAPI {
             this.getUserSession(uid).then((currentSessions) => {
                 if(currentSessions.length > 0){
                     this.getUserRoles(uid).then((userRoles) => {
-                        let rolePermList = [];
                         let promisePool = [];
                         for(const role of userRoles){
                             promisePool.push(this.getRolePermissions(role));
                         }
-                        Promise.allSettled(promisePool).then((results) => {
-                            rolePermList = results;
-                        });
-                        let permissionSum = getPermissionSum(rolePermList);
-                        this.removeExpiredSessions(uid, permissionSum.permissions.cookie_expire_after, currentSessions).then((removedSessions) => {
-                            this.getUserSession(uid).then((finalSessions) => {
-                                if(finalSessions.length > 0){
-                                    resolve({
-                                        "sessions": finalSessions,
-                                        "permissions": permissionSum,
-                                        "roles": userRoles,
-                                        "removed_sessions": removedSessions
-                                    });
-                                }else{
-                                    resolve({
-                                        "sessions": []
-                                    });
-                                }
+                        Promise.all(promisePool).then((results) => {
+                            let permissionSum = getPermissionSum(results);
+                            this.removeExpiredSessions(uid, permissionSum.permissions.cookie_expire_after, currentSessions).then((removedSessions) => {
+                                this.getUserSession(uid).then((finalSessions) => {
+                                    if(finalSessions.length > 0){
+                                        resolve({
+                                            "sessions": finalSessions,
+                                            "permissions": permissionSum,
+                                            "roles": userRoles,
+                                            "removed_sessions": removedSessions
+                                        });
+                                    }else{
+                                        resolve({
+                                            "sessions": []
+                                        });
+                                    }
+                                }).catch((err) => {
+                                    reject(err);
+                                });
                             }).catch((err) => {
                                 reject(err);
                             });
-                        }).catch((err) => {
-                            reject(err);
                         });
                     }).catch((err) => {
                         reject(err);
@@ -197,15 +195,49 @@ class IAPI {
             });
         });
     }
-    modifyUserRole(uid, action){ //todo
+    modifyUserRole(uid, actions){ //todo
+        //Action param structure: 
+        //A list of {role: "role", action: "add/remove"}
         return new Promise((resolve, reject) => {
-            //Action param structure: 
-            //A list of {role: "role", action: "add/remove"}
+            //todo upd redis if exist
+            this.getUserRoles(uid).then((results) => {
+                if(results == null){
+                    this.log("debug", "IAPI", "User not found in database.");
+                    reject(null);
+                }else{
+                    let roleSet = new Set();
+                    results.forEach(element => {
+                        roleSet.add(element);
+                    });
+                    for(const action of actions){
+                        if(action.action === "add"){
+                            roleSet.add(action.role);
+                        }else if(action.action === "remove"){
+                            roleSet.delete(action.role);
+                        }
+                    }
+                    let finalRoleList = Array.from(roleSet);
+                    this.mysql.query(
+                        "UPDATE users SET roles = ? WHERE uid = ?",
+                        [finalRoleList.join(","), uid],
+                        (err, results) => {
+                            if(err){
+                                this.log("debug", "IAPI", "Failed to query database.");
+                                reject(err);
+                            }else{
+                                resolve(results);
+                            }
+                        }
+                    );
+                }
+            });
         });
     }
     getUserPermissions(uid){
         return new Promise((resolve, reject) => {
             this.getUserRoles(uid).then((userRoles) => {
+                console.log(userRoles);
+                
                 if(userRoles == null){
                     reject("User not found in database.");
                 }else if(typeof userRoles === "object" && userRoles[0] == ""){
@@ -254,7 +286,6 @@ class IAPI {
                                 let newToken = generateNewToken(this.salt, username);
                                 let userRole = user.roles.split(",");
                                 let sessionRedisKey = this.rp + ":user_session:" + user.uid;
-
                                 let permissionList = [];
                                 let permissionRedisPromisePool = [];
                                 for(const element of userRole){
@@ -265,8 +296,8 @@ class IAPI {
                                     );  
                                 }
                                 Promise.all(permissionRedisPromisePool).then(() => {
-                                    
                                     let permissionSum = getPermissionSum(permissionList);
+                                    console.log(permissionSum);
                                     let cookie_expire_after = permissionSum.permissions.cookie_expire_after;
                                     let tokenBucketRedisKey = this.rp + ":user_token_bucket:" + user.uid;
                                     /*
@@ -283,7 +314,7 @@ class IAPI {
                                     }
 
                                     let rolesRedisKey = this.rp + ":user_roles:" + user.uid;
-                                    this.redis.set(rolesRedisKey, userRole, (err, results) => {
+                                    this.redis.set(rolesRedisKey, user.roles, (err, results) => {
                                         if (err) {
                                             this.log("debug", "IAPI", "Failed to set redis key: " + rolesRedisKey);
                                             reject(err);
