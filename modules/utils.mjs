@@ -193,6 +193,9 @@ function getPermissionSum(arr){
 
     //permSum is also the permission fallback, 
     //any permissions given to the user will override the permSum
+
+    //PRIORITY TODO
+    //update database permission sql to new format
     let permSum = {
         "with_rate_limit": 0,
         "permissions": {
@@ -201,65 +204,91 @@ function getPermissionSum(arr){
             "cookie_expire_after": 13150000000,
             "user": {
                 "permission": {
-                    "read": 0
+                    "read": {
+                        "default": 0,
+                        "allow": [],
+                        "disallow": []
+                    }
                 },
                 "role": {
-                    // "read": {
-                    //     "default": 0
-                    // }
+                    "read": {
+                        "default": 0,
+                        "allow": [],
+                        "disallow": []
+                    }
                 }
             },
             "role": {
                 "read": {
-                    "default": 0
+                    "default": 0,
+                    "allow": [],
+                    "disallow": []
                 },
                 "grant": {
-                    "default": 0
+                    "level": 0,
+                    "allow": []
                 },
                 "remove": {
-                    "default": 0
+                    "level": 0,
+                    "allow": []
                 },
             }, 
             "article": {
                 "read": {
                     "default": 0,
                     "category": {
-
+                        "allow": [],
+                        "disallow": []
                     },
                     "tag": {
-
+                        "allow": [],
+                        "disallow": []
                     }
                 },
                 "create": {
                     "default": 0,
                     "category": {
-
+                        "allow": [],
+                        "disallow": []
                     },
                     "tag": {
-
+                        "allow": [],
+                        "disallow": []
                     }  
                 }
             },
-            "post":{},
+            "post":{
+
+            },
+            "forum": {
+
+            },
             "comment": {},
-            "report": {},
+            "report": {
+                "create": 1
+            },
             "log": {
                 "read": 0
             }
         },
         "rate_limits": {
-
+            
         }
     };
-    let flagSet = new Set();
+    let sets = {
+        "flag" : new Set()
+    };
     let isRateLimitContained = false;
     for(const perm of arr){
         perm.permissions.flags.forEach(element => {
-            flagSet.add(element);
+            sets.flag.add(element);
         });
         if(perm.with_rate_limit == 1){
             isRateLimitContained = true;
             //todo: rate limit merge
+        }
+        if(perm.permissions.user.permission > permSum.permissions.user.permission){
+            permSum.permissions.user.permission = perm.permissions.user.permission;
         }
         // console.log(perm);
         // if(perm.permissions.max_session > permSum.permissions.max_session){
