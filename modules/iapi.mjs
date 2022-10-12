@@ -4,7 +4,7 @@ JSON.parse = parse.parse;
 import {
     generateNewToken, blake3Hash, objHasAllProperties,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
-    mergeJSON, getPermissionSum
+    mergeJSON, getFinalPermission
 } from "./utils.mjs";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -92,6 +92,7 @@ class IAPI {
         });
     }
     getValidUserSession(uid){
+        //todo: limitive and grantive
         return new Promise((resolve, reject) => {
             this.getUserSession(uid).then((currentSessions) => {
                 if(currentSessions.length > 0){
@@ -101,7 +102,7 @@ class IAPI {
                             promisePool.push(this.getRolePermissions(role));
                         }
                         Promise.all(promisePool).then((results) => {
-                            let permissionSum = getPermissionSum(results);
+                            let permissionSum = getFinalPermission(results);
                             this.removeExpiredSessions(uid, permissionSum.permissions.cookie_expire_after, currentSessions).then((removedSessions) => {
                                 this.getUserSession(uid).then((finalSessions) => {
                                     if(finalSessions.length > 0){
@@ -254,7 +255,7 @@ class IAPI {
                         }));
                     }
                     Promise.allSettled(promisePool).then((results) => {
-                        let permissions = getPermissionSum(results);
+                        let permissions = getFinalPermission(results);
                         resolve(permissions);
                     }).catch((err) => {
                         reject(err);
@@ -296,8 +297,7 @@ class IAPI {
                                     );  
                                 }
                                 Promise.all(permissionRedisPromisePool).then(() => {
-                                    let permissionSum = getPermissionSum(permissionList);
-                                    console.log(permissionSum);
+                                    let permissionSum = getFinalPermission(permissionList);
                                     let cookie_expire_after = permissionSum.permissions.cookie_expire_after;
                                     let tokenBucketRedisKey = this.rp + ":user_token_bucket:" + user.uid;
                                     /*
@@ -308,7 +308,7 @@ class IAPI {
                                     if(permissionSum.with_rate_limit){
     
                                     }else{
-                                        //user don't have a rate limit, use fallback rate limit(added by getPermissionSum) and prompt both user & admin an system error log.
+                                        //user don't have a rate limit, use fallback rate limit(added by getFinalPermission) and prompt both user & admin an system error log.
 
                                         //TODO: update log db structure and add "level"
                                     }

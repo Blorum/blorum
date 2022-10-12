@@ -163,10 +163,10 @@ CREATE TABLE `forum` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `log`
+-- Table structure for table `logs`
 --
 
-CREATE TABLE `log` (
+CREATE TABLE `logs` (
   `lid` int(10) UNSIGNED NOT NULL,
   `uid` int(10) UNSIGNED NOT NULL,
   `level` tinyint(4) NOT NULL DEFAULT '1',

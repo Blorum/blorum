@@ -188,8 +188,15 @@ function mergeArray(...args){
     return Array.from(new Set(args.reduce((a, b) => a.concat(b))));
 }
 
+function getFinalPermission(arr){
+    //v temp to be removed
+    return getPermissionSum(arr);
+    //^ temp to be removed
+
+}
+
 function getPermissionSum(arr){
-    //return the greatest permissions of all given role permissions
+    //Grantive role permission sum
 
     //permSum is also the permission fallback, 
     //any permissions given to the user will override the permSum
@@ -287,21 +294,25 @@ function getPermissionSum(arr){
             isRateLimitContained = true;
             //todo: rate limit merge
         }
-        if(perm.permissions.user.permission > permSum.permissions.user.permission){
-            permSum.permissions.user.permission = perm.permissions.user.permission;
-        }
+        // if(perm.permissions.user.permission > permSum.permissions.user.permission){
+        //     permSum.permissions.user.permission = perm.permissions.user.permission;
+        // }
         // console.log(perm);
         // if(perm.permissions.max_session > permSum.permissions.max_session){
         //     permSum.permissions.max_session = perm.permissions.max_session;
         // }
     }
-    permSum.permissions.flags = Array.from(flagSet);
+    permSum.permissions.flags = Array.from(sets.flag);
     return permSum;
+}
+function getLPermissionSum(arr){
+    //Limitive permission sum.
+    //TODO
 }
 
 export { 
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum, getLPermissionSum, getFinalPermission
 };

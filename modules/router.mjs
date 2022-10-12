@@ -256,7 +256,7 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
             res.set("Content-Type","application/json");
             res.set(commonHeader);
             let b = req.body;
-            let permissionLevel = req.validUserPermissions.permissions.user.permission.read;
+            let permissionLevel = req.validUserPermissions.permissions.user.permission.read.default;
             if(!isNaN(b.uid)){
                 switch(permissionLevel){
                     case 1:
