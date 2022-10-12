@@ -1,8 +1,8 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
 SET @@auto_increment_increment=1;
+
+START TRANSACTION;
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -11,6 +11,8 @@ SET @@auto_increment_increment=1;
 --
 -- Database: `blorum`
 --
+CREATE DATABASE IF NOT EXISTS `blorum` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `blorum`;
 
 -- --------------------------------------------------------
 
@@ -164,7 +166,7 @@ CREATE TABLE `forum` (
 -- Table structure for table `log`
 --
 
-CREATE TABLE `logs` (
+CREATE TABLE `log` (
   `lid` int(10) UNSIGNED NOT NULL,
   `uid` int(10) UNSIGNED NOT NULL,
   `level` tinyint(4) NOT NULL DEFAULT '1',
@@ -248,14 +250,11 @@ CREATE TABLE `reports` (
 
 CREATE TABLE `roles` (
   `name` varchar(64) NOT NULL,
+  `type` tinyint(1) NOT NULL,
   `with_rate_limit` tinyint(1) NOT NULL,
   `permissions` json NOT NULL,
   `rate_limits` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `roles`
---
 
 -- --------------------------------------------------------
 
@@ -267,13 +266,6 @@ CREATE TABLE `statistics` (
   `name` varchar(64) NOT NULL,
   `value` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `statistics`
---
-
-INSERT INTO `statistics` (`name`, `value`) VALUES
-('test', '{\"a\": 1}');
 
 -- --------------------------------------------------------
 
