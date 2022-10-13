@@ -553,7 +553,7 @@ class IAPI {
             }
         });
     }
-    createArticle(){
+    createArticle(uid, title, content, tags, category, excerpt, slug, status){
 
     }
     alterArticle(){

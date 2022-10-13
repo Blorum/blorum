@@ -172,7 +172,8 @@ function filterSpace(str){
 function cookieParser(raw){
     let cookie = {};
     let pairs = raw.split(';');
-    for(let i = 0; i < pairs.length; i++){
+    var pairsLen = pairs.length;
+    for(let i = 0; i < pairsLen; i++){
         let pair = pairs[i].split('=');
         cookie[filterSpace(pair[0])] = pair[1];
     }
@@ -213,23 +214,20 @@ function getPermissionSum(arr){
                 "permission": {
                     "read": {
                         "default": 0,
-                        "allow": [],
-                        "disallow": []
+                        "allow": []
                     }
                 },
                 "role": {
                     "read": {
                         "default": 0,
-                        "allow": [],
-                        "disallow": []
+                        "allow": []
                     }
                 }
             },
             "role": {
                 "read": {
                     "default": 0,
-                    "allow": [],
-                    "disallow": []
+                    "allow": []
                 },
                 "grant": {
                     "level": 0,
@@ -244,35 +242,65 @@ function getPermissionSum(arr){
                 "read": {
                     "default": 0,
                     "category": {
-                        "allow": [],
-                        "disallow": []
+                        "allow": []
                     },
                     "tag": {
-                        "allow": [],
-                        "disallow": []
+                        "allow": []
                     }
                 },
                 "create": {
                     "default": 0,
                     "category": {
-                        "allow": [],
-                        "disallow": []
+                        "allow": []
                     },
                     "tag": {
-                        "allow": [],
-                        "disallow": []
+                        "allow": []
                     }  
-                }
-            },
-            "post":{
-
+                },
             },
             "forum": {
-
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }   
             },
-            "comment": {},
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
             "report": {
-                "create": 1
+                "create": 0
             },
             "log": {
                 "read": 0
@@ -286,7 +314,9 @@ function getPermissionSum(arr){
         "flag" : new Set()
     };
     let isRateLimitContained = false;
-    for(const perm of arr){
+    var arrLen = arr.length;
+    for(var i=0; i<arrLen; i++){
+        let perm = arr[i];
         perm.permissions.flags.forEach(element => {
             sets.flag.add(element);
         });
