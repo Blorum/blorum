@@ -557,11 +557,52 @@ class IAPI {
 
     }
     alterArticle(){
+        //diff-match-patch
+        /*
+        
+var dmp = new diff_match_patch();
 
+  var text1
+  var text2
+  dmp.Diff_Timeout
+  dmp.Diff_EditCost
+
+    dmp.diff_cleanupSemantic(d);
+
+    dmp.diff_cleanupEfficiency(d);
+ */
     }
     deleteArticle(){
 
     }
+
+    createPost(){
+
+    }
+
+    alterPost(){}
+
+    deletePost(){}
+
+    createComment(){}
+
+    alterComment(){}
+
+    deleteComment(){}
+
+    createTag(){}
+
+    deleteTag(){}
+
+    createCategory(){}
+
+    deleteCategory(){}
+
+    createRole(roleType, name, permission){
+        
+    }
+
+    deleteRole(name){}
 }
 
 export { IAPI };

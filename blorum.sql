@@ -1,7 +1,16 @@
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET @@auto_increment_increment=1;
+-- phpMyAdmin SQL Dump
+-- version 5.0.4
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost
+-- Generation Time: Oct 17, 2022 at 03:47 PM
+-- Server version: 5.7.30-log
+-- PHP Version: 8.0.3
 
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -11,8 +20,6 @@ START TRANSACTION;
 --
 -- Database: `blorum`
 --
-CREATE DATABASE IF NOT EXISTS `blorum` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `blorum`;
 
 -- --------------------------------------------------------
 
@@ -29,6 +36,7 @@ CREATE TABLE `articles` (
   `tags` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `category` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `status` json NOT NULL,
+  `history` json NOT NULL,
   `statistics` json NOT NULL,
   `slug` char(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -37,8 +45,20 @@ CREATE TABLE `articles` (
 -- Dumping data for table `articles`
 --
 
-INSERT INTO `articles` (`aid`, `uid`, `title`, `content`, `excerpt`, `tags`, `category`, `status`, `statistics`, `slug`) VALUES
-(0, 0, '', '', '', '', '', '{}', '{}', NULL);
+INSERT INTO `articles` (`aid`, `uid`, `title`, `content`, `excerpt`, `tags`, `category`, `status`, `history`, `statistics`, `slug`) VALUES
+(0, 0, '', '', '', '', '', '{}', 'null', '{}', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+CREATE TABLE `categories` (
+  `name` varchar(64) NOT NULL,
+  `description` text NOT NULL,
+  `statistics` json NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -56,15 +76,16 @@ CREATE TABLE `comments_a` (
   `reply_to` int(10) UNSIGNED NOT NULL,
   `children` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `type` varchar(16) NOT NULL,
-  `statistics` json NOT NULL
+  `statistics` json NOT NULL,
+  `history` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `comments_a`
 --
 
-INSERT INTO `comments_a` (`cid`, `aid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`) VALUES
-(0, 0, 0, 0, 0, '{}', 0, '{}', '0', '{}');
+INSERT INTO `comments_a` (`cid`, `aid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`, `history`) VALUES
+(0, 0, 0, 0, 0, '{}', 0, '{}', '0', '{}', 'null');
 
 -- --------------------------------------------------------
 
@@ -82,15 +103,16 @@ CREATE TABLE `comments_p` (
   `reply_to` int(10) UNSIGNED NOT NULL,
   `children` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `type` tinyint(4) NOT NULL,
-  `statistics` json NOT NULL
+  `statistics` json NOT NULL,
+  `history` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `comments_p`
 --
 
-INSERT INTO `comments_p` (`cid`, `pid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`) VALUES
-(0, 0, 0, 0, 0, '{}', 0, '{}', 0, '{}');
+INSERT INTO `comments_p` (`cid`, `pid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`, `history`) VALUES
+(0, 0, 0, 0, 0, '{}', 0, '{}', 0, '{}', 'null');
 
 -- --------------------------------------------------------
 
@@ -105,15 +127,16 @@ CREATE TABLE `comments_u` (
   `reply_to` int(10) UNSIGNED NOT NULL,
   `content` json NOT NULL,
   `type` tinyint(4) NOT NULL,
-  `statistics` json NOT NULL
+  `statistics` json NOT NULL,
+  `history` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `comments_u`
 --
 
-INSERT INTO `comments_u` (`cid`, `to_uid`, `uid`, `reply_to`, `content`, `type`, `statistics`) VALUES
-(0, 0, 0, 0, '{}', 0, '{}');
+INSERT INTO `comments_u` (`cid`, `to_uid`, `uid`, `reply_to`, `content`, `type`, `statistics`, `history`) VALUES
+(0, 0, 0, 0, '{}', 0, '{}', 'null');
 
 -- --------------------------------------------------------
 
@@ -199,15 +222,16 @@ CREATE TABLE `notes` (
   `from_pos` bigint(20) UNSIGNED NOT NULL,
   `to_pos` bigint(20) UNSIGNED NOT NULL,
   `uid` int(10) UNSIGNED NOT NULL,
-  `content` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
+  `content` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `history` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `notes`
 --
 
-INSERT INTO `notes` (`nid`, `aid`, `cid`, `from_pos`, `to_pos`, `uid`, `content`) VALUES
-(0, 0, 0, 0, 0, 0, '');
+INSERT INTO `notes` (`nid`, `aid`, `cid`, `from_pos`, `to_pos`, `uid`, `content`, `history`) VALUES
+(0, 0, 0, 0, 0, 0, '', 'null');
 
 -- --------------------------------------------------------
 
@@ -225,6 +249,7 @@ CREATE TABLE `posts` (
   `is_conversation` tinyint(1) NOT NULL DEFAULT '0',
   `viewer` json DEFAULT NULL,
   `statistics` json NOT NULL,
+  `history` json NOT NULL,
   `status` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -267,6 +292,24 @@ CREATE TABLE `statistics` (
   `value` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Dumping data for table `statistics`
+--
+
+INSERT INTO `statistics` (`name`, `value`) VALUES
+('test', '{\"a\": 1}');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tags`
+--
+
+CREATE TABLE `tags` (
+  `name` varchar(64) NOT NULL,
+  `statistics` json NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- --------------------------------------------------------
 
 --
@@ -305,6 +348,12 @@ ALTER TABLE `articles`
   ADD UNIQUE KEY `slug` (`slug`),
   ADD KEY `category` (`category`),
   ADD KEY `uid` (`uid`);
+
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`name`);
 
 --
 -- Indexes for table `comments_a`
@@ -350,9 +399,9 @@ ALTER TABLE `forum`
   ADD UNIQUE KEY `name` (`name`);
 
 --
--- Indexes for table `log`
+-- Indexes for table `logs`
 --
-ALTER TABLE `log`
+ALTER TABLE `logs`
   ADD PRIMARY KEY (`lid`) USING BTREE,
   ADD KEY `uid` (`uid`),
   ADD KEY `level` (`level`);
@@ -395,6 +444,12 @@ ALTER TABLE `roles`
 -- Indexes for table `statistics`
 --
 ALTER TABLE `statistics`
+  ADD PRIMARY KEY (`name`);
+
+--
+-- Indexes for table `tags`
+--
+ALTER TABLE `tags`
   ADD PRIMARY KEY (`name`);
 
 --
@@ -446,9 +501,9 @@ ALTER TABLE `forum`
   MODIFY `fid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `log`
+-- AUTO_INCREMENT for table `logs`
 --
-ALTER TABLE `log`
+ALTER TABLE `logs`
   MODIFY `lid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --

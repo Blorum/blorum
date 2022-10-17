@@ -35,9 +35,9 @@ const c = {
 
 function outputLogs(level, context, info) {
     let currentTime = new Date().toTimeString().substring(0, 8);
-    if(currentTime.length == 10){
+    if (currentTime.length == 10) {
         currentTime = currentTime + "00";
-    }else if(currentTime.length == 11){
+    } else if (currentTime.length == 11) {
         currentTime = currentTime + "0";
     }
     let logs = `[${level}][${currentTime}][${context}]: ${info}`;
@@ -47,9 +47,9 @@ function outputLogs(level, context, info) {
 function outputLogsColored(level, context, info) {
     let date = new Date();
     let currentTime = date.toTimeString().substring(0, 8) + "." + date.getMilliseconds();
-    if(currentTime.length == 10){
+    if (currentTime.length == 10) {
         currentTime = currentTime + "00";
-    }else if(currentTime.length == 11){
+    } else if (currentTime.length == 11) {
         currentTime = currentTime + "0";
     }
     let logs = "";
@@ -71,7 +71,7 @@ function outputLogsColored(level, context, info) {
 }
 
 function blake3Hash(text) {
-    return blake3.hash(text, {"length": 66}).toString("base64");
+    return blake3.hash(text, { "length": 66 }).toString("base64");
 }
 
 function generateNewToken(salt, username) {
@@ -116,87 +116,87 @@ function isModuleAvailable(name) {
     }
 }
 
-function isAllString(...args){
-    for(let i = 0; i < args.length; i++){
-        if(typeof args[i] !== "string"){
+function isAllString(...args) {
+    for (let i = 0; i < args.length; i++) {
+        if (typeof args[i] !== "string") {
             return false;
         }
     }
     return true;
 }
 
-function objHasAllProperties(obj, ...props){
-    for(let i = 0; i < props.length; i++){
-        if(!obj.hasOwnProperty(props[i])){
+function objHasAllProperties(obj, ...props) {
+    for (let i = 0; i < props.length; i++) {
+        if (!obj.hasOwnProperty(props[i])) {
             return false;
         }
     }
     return true;
 }
 
-function strASCIIOnly(str){
+function strASCIIOnly(str) {
     return /^[\x00-\x7F]*$/.test(str);
 }
 
-function strStrictLegal(str){
+function strStrictLegal(str) {
     return /^[a-zA-Z0-9_]+$/.test(str);
 }
 
-function strNotOnlyNumber(str){
+function strNotOnlyNumber(str) {
     return /[^0-9]/.test(str);
 }
 
-function basicPasswordRequirement(str){
+function basicPasswordRequirement(str) {
     //at least 8 characters, includes at least one number, one letter
     return /^(?:(?=.*[a-z])|(?=.*[A-Z]))(?=.*\d)[^]{8,}$/.test(str);
 }
 
-function isValidEmail(str){
+function isValidEmail(str) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
-function mergeJSON(...args){
+function mergeJSON(...args) {
     let obj = {};
-    for(let i = 0; i < args.length; i++){
-        for(let key in args[i]){
+    for (let i = 0; i < args.length; i++) {
+        for (let key in args[i]) {
             obj[key] = args[i][key];
         }
     }
     return obj;
 }
 
-function filterSpace(str){
+function filterSpace(str) {
     return str.replace(/\s/g, '');
 }
 
-function cookieParser(raw){
+function cookieParser(raw) {
     let cookie = {};
     let pairs = raw.split(';');
     var pairsLen = pairs.length;
-    for(let i = 0; i < pairsLen; i++){
+    for (let i = 0; i < pairsLen; i++) {
         let pair = pairs[i].split('=');
         cookie[filterSpace(pair[0])] = pair[1];
     }
     return cookie;
 }
 
-function pureArray(arr){
+function pureArray(arr) {
     //remove all empty items in an array
     return arr.filter(item => item !== "");
 }
 
-function mergeArray(...args){
+function mergeArray(...args) {
     return Array.from(new Set(args.reduce((a, b) => a.concat(b))));
 }
 
-function getFinalPermission(arr){
+function getFinalPermission(arr) {
     //v temp to be removed
     return getPermissionSum(arr);
     //^ temp to be removed
 
 }
 
-function getPermissionSum(arr){
+function getPermissionSum(arr) {
     //Grantive role permission sum
 
     //permSum is also the permission fallback, 
@@ -237,7 +237,7 @@ function getPermissionSum(arr){
                     "level": 0,
                     "allow": []
                 },
-            }, 
+            },
             "article": {
                 "read": {
                     "default": 0,
@@ -255,7 +255,7 @@ function getPermissionSum(arr){
                     },
                     "tag": {
                         "allow": []
-                    }  
+                    }
                 },
             },
             "forum": {
@@ -268,7 +268,7 @@ function getPermissionSum(arr){
                             "allow": []
                         }
                     }
-                }   
+                }
             },
             "comment": {
                 "post": {
@@ -307,20 +307,38 @@ function getPermissionSum(arr){
             }
         },
         "rate_limits": {
-            
+            "edit": {
+                "post": 60,
+                "react": 120,
+                "article": 60,
+                "comment": 120
+            },
+            "login": 20,
+            "create": {
+                "post": 60,
+                "react": 120,
+                "article": 60,
+                "comment": 120
+            },
+            "remove": {
+                "post": 60,
+                "react": 120,
+                "article": 60,
+                "comment": 120
+            }
         }
     };
     let sets = {
-        "flag" : new Set()
+        "flag": new Set()
     };
     let isRateLimitContained = false;
     var arrLen = arr.length;
-    for(var i=0; i<arrLen; i++){
+    for (var i = 0; i < arrLen; i++) {
         let perm = arr[i];
         perm.permissions.flags.forEach(element => {
             sets.flag.add(element);
         });
-        if(perm.with_rate_limit == 1){
+        if (perm.with_rate_limit == 1) {
             isRateLimitContained = true;
             //todo: rate limit merge
         }
@@ -335,13 +353,13 @@ function getPermissionSum(arr){
     permSum.permissions.flags = Array.from(sets.flag);
     return permSum;
 }
-function getLPermissionSum(arr){
+function getLPermissionSum(arr) {
     //Limitive permission sum.
     //TODO
 }
 
-export { 
-    version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken, 
+export {
+    version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken,
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
     objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum, getLPermissionSum, getFinalPermission
