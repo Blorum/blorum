@@ -312,16 +312,20 @@ function getPermissionSum(arr) {
             "report": 0,
             "edit": {
                 "post": {
+                    "self": 0,
                     "tag": 0,
                     "forum": 0
                 },
                 "article": {
                     "self": 0,
-                    "category": 0,
-                    "tag": 0
+                    "tag": 0,
+                    "category": 0
                 },
                 "comment": 0,
-                "note": 0
+                "note": 0,
+                "user": 0,
+                "category": 0,
+                "forum": 0,
             },
             "create": {
                 "tag": 0,
@@ -330,8 +334,10 @@ function getPermissionSum(arr) {
                 "react": 0,
                 "article": 0,
                 "comment": 0,
+                "note": 0,
                 "forum": 0,
-                "note": 0
+                "report": 0,
+                "user": 0
             },
             "remove": {
                 "tag": 0,
@@ -341,13 +347,9 @@ function getPermissionSum(arr) {
                 "article": 0,
                 "comment": 0,
                 "note": 0,
-                "forum": 0
-            },
-            "administrative": {
-                "user": {
-                    "remove": 0,
-                    "edit": 0
-                }
+                "forum": 0,
+                "report": 0,
+                "user": 0
             }
         }
     };

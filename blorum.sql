@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Oct 17, 2022 at 03:47 PM
+-- Generation Time: Oct 19, 2022 at 02:43 PM
 -- Server version: 5.7.30-log
 -- PHP Version: 8.0.3
 
@@ -46,7 +46,7 @@ CREATE TABLE `articles` (
 --
 
 INSERT INTO `articles` (`aid`, `uid`, `title`, `content`, `excerpt`, `tags`, `category`, `status`, `history`, `statistics`, `slug`) VALUES
-(0, 0, '', '', '', '', '', '{}', 'null', '{}', NULL);
+(0, 0, '_blorum_root', '', '', '', '', '{}', '{}', '{}', NULL);
 
 -- --------------------------------------------------------
 
@@ -55,10 +55,19 @@ INSERT INTO `articles` (`aid`, `uid`, `title`, `content`, `excerpt`, `tags`, `ca
 --
 
 CREATE TABLE `categories` (
+  `cid` int(10) UNSIGNED NOT NULL,
   `name` varchar(64) NOT NULL,
-  `description` text NOT NULL,
+  `parent` text NOT NULL,
+  `children` text NOT NULL,
   `statistics` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`cid`, `name`, `parent`, `children`, `statistics`) VALUES
+(1, '_blorum_root', '', '', '{}');
 
 -- --------------------------------------------------------
 
@@ -85,7 +94,7 @@ CREATE TABLE `comments_a` (
 --
 
 INSERT INTO `comments_a` (`cid`, `aid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`, `history`) VALUES
-(0, 0, 0, 0, 0, '{}', 0, '{}', '0', '{}', 'null');
+(0, 0, 0, 0, 0, '{}', 0, '{}', '0', '{}', '{}');
 
 -- --------------------------------------------------------
 
@@ -112,7 +121,7 @@ CREATE TABLE `comments_p` (
 --
 
 INSERT INTO `comments_p` (`cid`, `pid`, `nid`, `uid`, `depth`, `content`, `reply_to`, `children`, `type`, `statistics`, `history`) VALUES
-(0, 0, 0, 0, 0, '{}', 0, '{}', 0, '{}', 'null');
+(0, 0, 0, 0, 0, '{}', 0, '{}', 0, '{}', '{}');
 
 -- --------------------------------------------------------
 
@@ -136,7 +145,7 @@ CREATE TABLE `comments_u` (
 --
 
 INSERT INTO `comments_u` (`cid`, `to_uid`, `uid`, `reply_to`, `content`, `type`, `statistics`, `history`) VALUES
-(0, 0, 0, 0, '{}', 0, '{}', 'null');
+(0, 0, 0, 0, '{}', 0, '{}', '{}');
 
 -- --------------------------------------------------------
 
@@ -231,7 +240,7 @@ CREATE TABLE `notes` (
 --
 
 INSERT INTO `notes` (`nid`, `aid`, `cid`, `from_pos`, `to_pos`, `uid`, `content`, `history`) VALUES
-(0, 0, 0, 0, 0, 0, '', 'null');
+(0, 0, 0, 0, 0, 0, '', '{}');
 
 -- --------------------------------------------------------
 
@@ -252,6 +261,13 @@ CREATE TABLE `posts` (
   `history` json NOT NULL,
   `status` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `posts`
+--
+
+INSERT INTO `posts` (`pid`, `aid`, `fid`, `uid`, `title`, `content`, `is_conversation`, `viewer`, `statistics`, `history`, `status`) VALUES
+(1, 0, 0, 0, '_blorum_root', '', 0, '{}', '{}', '{}', '{}');
 
 -- --------------------------------------------------------
 
@@ -353,7 +369,8 @@ ALTER TABLE `articles`
 -- Indexes for table `categories`
 --
 ALTER TABLE `categories`
-  ADD PRIMARY KEY (`name`);
+  ADD PRIMARY KEY (`cid`),
+  ADD KEY `name` (`name`);
 
 --
 -- Indexes for table `comments_a`
@@ -471,6 +488,12 @@ ALTER TABLE `articles`
   MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `cid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `comments_a`
 --
 ALTER TABLE `comments_a`
@@ -516,7 +539,7 @@ ALTER TABLE `notes`
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `pid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `pid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `reports`

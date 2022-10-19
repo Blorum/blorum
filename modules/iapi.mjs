@@ -103,7 +103,6 @@ class IAPI {
                         let promisePool = [];
                         for(const role of userRoles){
                             if(role === null){
-                                this.logInsert(uid, "User has roles that doesn't exist in database", 2);
                                 continue;
                             }
                             promisePool.push(this.getRolePermissions(role));
@@ -175,7 +174,12 @@ class IAPI {
                                     this.log("debug", "IAPI", "User not found in database: " + uid);
                                     resolve(null);
                                 }else{
-                                    resolve(results[0].roles.split(","));
+                                    let roles = results[0].roles.split(",");
+                                    for(let i = 0; i < roles.length; i++){
+                                        roles[i] = roles[i].replace(/{{/g, "");
+                                        roles[i] = roles[i].replace(/}}/g, "");
+                                    }
+                                    resolve(roles);
                                 }
                             }
                         }
@@ -207,9 +211,9 @@ class IAPI {
     }
     modifyUserRole(uid, actions){
         //Action param structure: 
-        //A list of {role: "role", action: "add/remove"}
+        //A list of {role: "{{role}}", action: "add/remove"}
         return new Promise((resolve, reject) => {
-            //todo upd redis if exist
+            //todo: upd redis if exist
             this.getUserRoles(uid).then((results) => {
                 if(results == null){
                     this.log("debug", "IAPI", "User not found in database.");
@@ -221,9 +225,9 @@ class IAPI {
                     });
                     for(const action of actions){
                         if(action.action === "add"){
-                            roleSet.add(action.role);
+                            roleSet.add("{{" + action.role + "}}");
                         }else if(action.action === "remove"){
-                            roleSet.delete(action.role);
+                            roleSet.delete("{{" + action.role + "}}");
                         }
                     }
                     let finalRoleList = Array.from(roleSet);
@@ -254,7 +258,6 @@ class IAPI {
                     let promisePool = [];
                     for(const element of userRoles){
                         if(element === null){
-                            this.logInsert(uid, "User has roles that doesn't exist in database", 2);
                             continue;
                         }
                         promisePool.push(new Promise((resolve, reject) => {
