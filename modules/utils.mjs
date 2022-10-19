@@ -307,24 +307,47 @@ function getPermissionSum(arr) {
             }
         },
         "rate_limits": {
+            "login": 1,
+            "invite": 0,
+            "report": 0,
             "edit": {
-                "post": 60,
-                "react": 120,
-                "article": 60,
-                "comment": 120
+                "post": {
+                    "tag": 0,
+                    "forum": 0
+                },
+                "article": {
+                    "self": 0,
+                    "category": 0,
+                    "tag": 0
+                },
+                "comment": 0,
+                "note": 0
             },
-            "login": 20,
             "create": {
-                "post": 60,
-                "react": 120,
-                "article": 60,
-                "comment": 120
+                "tag": 0,
+                "category": 0,
+                "post": 0,
+                "react": 0,
+                "article": 0,
+                "comment": 0,
+                "forum": 0,
+                "note": 0
             },
             "remove": {
-                "post": 60,
-                "react": 120,
-                "article": 60,
-                "comment": 120
+                "tag": 0,
+                "category": 0,
+                "post": 0,
+                "react": 0,
+                "article": 0,
+                "comment": 0,
+                "note": 0,
+                "forum": 0
+            },
+            "administrative": {
+                "user": {
+                    "remove": 0,
+                    "edit": 0
+                }
             }
         }
     };
@@ -356,6 +379,20 @@ function getPermissionSum(arr) {
 function getLPermissionSum(arr) {
     //Limitive permission sum.
     //TODO
+}
+function InfFixProxy(obj){
+    return new Proxy(obj, {
+        get: function(target, prop, receiver) {
+            let val = Reflect.get(target, prop, receiver);
+            if(val == -1){
+                return Infinity;
+            }
+            return val;
+        },
+        set: function(target, prop, value, receiver) {
+            return Reflect.set(target, prop, value, receiver);
+        }
+    })
 }
 
 export {

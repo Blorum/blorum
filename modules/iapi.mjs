@@ -6,6 +6,9 @@ import {
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
     mergeJSON, getFinalPermission
 } from "./utils.mjs";
+
+import { default as DMP } from "diff-match-patch";
+
 import { v4 as uuidv4 } from 'uuid';
 
 import stringify from "quick-stable-stringify";
@@ -99,6 +102,10 @@ class IAPI {
                     this.getUserRoles(uid).then((userRoles) => {
                         let promisePool = [];
                         for(const role of userRoles){
+                            if(role === null){
+                                this.logInsert(uid, "User has roles that doesn't exist in database", 2);
+                                continue;
+                            }
                             promisePool.push(this.getRolePermissions(role));
                         }
                         Promise.all(promisePool).then((results) => {
@@ -140,12 +147,14 @@ class IAPI {
     }
     getRolePermissions(role){
         return new Promise((resolve, reject) => {
-            this.redis.get(this.rp + ":roles:" + role, (err, results) => {
-                if(err){
-                    reject(err);
-                }else{
+            this.getRedisKeyIfExists(this.rp + ":roles:" + role).then((results) => {
+                if(results != null){
                     resolve(JSON.parse(results));
+                }else{
+                    resolve(null);
                 }
+            }).catch((err) => {
+                reject(err);
             });
         });
     }
@@ -196,7 +205,7 @@ class IAPI {
             });
         });
     }
-    modifyUserRole(uid, actions){ //todo
+    modifyUserRole(uid, actions){
         //Action param structure: 
         //A list of {role: "role", action: "add/remove"}
         return new Promise((resolve, reject) => {
@@ -237,8 +246,6 @@ class IAPI {
     getUserPermissions(uid){
         return new Promise((resolve, reject) => {
             this.getUserRoles(uid).then((userRoles) => {
-                console.log(userRoles);
-                
                 if(userRoles == null){
                     reject("User not found in database.");
                 }else if(typeof userRoles === "object" && userRoles[0] == ""){
@@ -266,7 +273,6 @@ class IAPI {
             });
         });
     }
-    //Actual service functions
     userLogin(ip, ua, username, password) {
         //Assume that user don't have login status, don't use session_check middleware optimization.
         return new Promise((resolve, reject) => {
@@ -554,6 +560,7 @@ class IAPI {
         });
     }
     createArticle(uid, title, content, tags, category, excerpt, slug, status){
+        let statusProto = {};
 
     }
     alterArticle(){
@@ -580,13 +587,13 @@ var dmp = new diff_match_patch();
 
     }
 
-    alterPost(){}
+    editPost(){}
 
     deletePost(){}
 
     createComment(){}
 
-    alterComment(){}
+    editComment(){}
 
     deleteComment(){}
 
@@ -599,7 +606,16 @@ var dmp = new diff_match_patch();
     deleteCategory(){}
 
     createRole(roleType, name, permission){
-        
+        switch(roleType){
+            case "0":
+                //Limitive
+                break;
+            case "1":
+                //Grantive
+                break;
+            default:
+                return Promise.reject("Invalid role type");
+        }
     }
 
     deleteRole(name){}
