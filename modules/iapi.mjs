@@ -4,7 +4,7 @@ JSON.parse = parse.parse;
 import {
     generateNewToken, blake3Hash, objHasAllProperties,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
-    mergeJSON, getFinalPermission
+    mergeJSON, getFinalPermission, removeElementFromArray
 } from "./utils.mjs";
 
 import { default as DMP } from "diff-match-patch";
@@ -610,6 +610,7 @@ var dmp = new diff_match_patch();
     deleteCategory(){}
 
     createRole(roleType, name, permission){
+        //todo
         switch(roleType){
             case "0":
                 //Limitive
@@ -622,7 +623,55 @@ var dmp = new diff_match_patch();
         }
     }
 
-    deleteRole(name){}
+    deleteRole(name){
+        return new Promise((resolve, reject) => {
+            this.mysql.query("DELETE FROM roles WHERE name = ?;", [name], (err, results) => {
+                if(err){
+                    reject(err);
+                }else{
+                    resolve(results);
+                }
+            });
+        });
+    }
+
+    depriveRole(name){
+        //Remove this role from all users with this role.
+        return new Promise((resolve, reject) => {
+            this.mysql.query(
+                "SELECT uid,roles FROM users WHERE roles.contains(?);",
+                [name],
+                (err, results) => {
+                    if(err){
+                        reject(err);
+                    }else{
+                        let promisePool = [];
+                        for(let element of results){
+                            promisePool.push(new Promise((resolve, reject) => {
+                                element.roles = element.roles.split(",");
+                                removeElementFromArray(element.roles, name);
+                                this.mysql.query(
+                                    "UPDATE users SET roles = ? WHERE uid = ?;",
+                                    [element.roles.join(","), element.uid],
+                                    (err, results) => {
+                                        if(err){
+                                            reject(err);
+                                        }else{
+                                            resolve(results);
+                                        }
+                                    });
+                            }));
+                        }
+                        return Promise.all(promisePool).then((results) => {
+                            resolve(results);
+                        }).catch((err) => {
+                            reject(err);
+                        });
+                    }
+                }
+            )
+        });
+    }
 }
 
 export { IAPI };

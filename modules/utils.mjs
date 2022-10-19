@@ -376,10 +376,12 @@ function getPermissionSum(arr) {
     permSum.permissions.flags = Array.from(sets.flag);
     return permSum;
 }
+
 function getLPermissionSum(arr) {
     //Limitive permission sum.
     //TODO
 }
+
 function InfFixProxy(obj){
     return new Proxy(obj, {
         get: function(target, prop, receiver) {
@@ -395,9 +397,17 @@ function InfFixProxy(obj){
     })
 }
 
+function removeElementFromArray(arr, element){
+    let index = arr.indexOf(element);
+    if(index > -1){
+        arr.splice(index, 1);
+    }
+}
+
 export {
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken,
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
-    objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum, getLPermissionSum, getFinalPermission
+    objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum, getLPermissionSum, getFinalPermission,
+    removeElementFromArray, InfFixProxy
 };
