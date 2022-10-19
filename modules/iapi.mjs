@@ -253,6 +253,10 @@ class IAPI {
                 }else{
                     let promisePool = [];
                     for(const element of userRoles){
+                        if(element === null){
+                            this.logInsert(uid, "User has roles that doesn't exist in database", 2);
+                            continue;
+                        }
                         promisePool.push(new Promise((resolve, reject) => {
                             this.getRolePermissions(element).then((results) => {
                                 resolve(results);
