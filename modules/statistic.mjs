@@ -1,6 +1,11 @@
 function StatisticsMiddleware(log, redisConnection, mysqlConnection, siteConfig, iapi, getReqInfo){
-
+    this.log = log;
+    this.mysql = mysqlConnection;
+    //todo: scheduled connection!!!
     this.middleware = (req, res, next) => {
+        switch(req.path){
+
+        }
         next();
     };
 }

@@ -7,12 +7,6 @@ import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 
 import stringify from "quick-stable-stringify";
 
-function MysqlIntegrityCheck(mysqlConnection) {
-    return new Promise((resolve, reject) => {
-        resolve(); //TODO
-    });
-}
-
 function initializeBlorumServer() {
     const __dirname = fileURLToPath(import.meta.url);
     let bootConfigPath = join(__dirname, '..', '..', 'config.json');
@@ -68,47 +62,42 @@ function initializeBlorumServer() {
             Promise.all([redisPromise, mysqlPromise]).then((values) => {
                 let mysqlConn = values[1];
                 let redisConn = values[0];
-                MysqlIntegrityCheck(mysqlConn).then(() => {
-                    mysqlConn.query("SELECT * FROM config;", (err,results) => {
-                        if (err) {
-                            log("error", "INIT/db/mysql", "Failed to query config table.");
-                            reject(err);
-                        } else {
-                            log("log", "INIT/db/mysql", "Site config loaded.");
-                            let siteConfig = {};
-                            for(const element of results){
-                                siteConfig[element.flag] = element.value;
-                            }
-                            mysqlConn.query("SELECT * FROM roles;", (err,results) => {
-                                if (err) {
-                                    log("error", "INIT/db/mysql", "Failed to query roles table.");
-                                    reject(err);
-                                }else{
-                                    let redisKey = bootConfig.database.redis.prefix + ":roles:";
-                                    for(let element of results){
-                                        try {
-                                            let keyName = redisKey + element.name;
-                                            delete element.name;
-                                            redisConn.set(keyName, stringify(element)); 
-                                        } catch (error) {
-                                            log("error", "INIT/db/redis", "Failed to set role in redis.");
-                                            reject(error);
-                                        }
-                                        resolve({
-                                            "log": log,
-                                            "mysql": mysqlConn,
-                                            "redis": redisConn,
-                                            "siteConfig": siteConfig,
-                                            "bootConfig": bootConfig
-                                        });
-                                    }
-                                }
-                            });
+                mysqlConn.query("SELECT * FROM config;", (err,results) => {
+                    if (err) {
+                        log("error", "INIT/db/mysql", "Failed to query config table.");
+                        reject(err);
+                    } else {
+                        log("log", "INIT/db/mysql", "Site config loaded.");
+                        let siteConfig = {};
+                        for(const element of results){
+                            siteConfig[element.flag] = element.value;
                         }
-                    });
-                }).catch(function (err) {
-                    log("error", "INIT/db/mysql", "MySQL Database integrity check failed. ");
-                    reject(err);
+                        mysqlConn.query("SELECT * FROM roles;", (err,results) => {
+                            if (err) {
+                                log("error", "INIT/db/mysql", "Failed to query roles table.");
+                                reject(err);
+                            }else{
+                                let redisKey = bootConfig.database.redis.prefix + ":roles:";
+                                for(let element of results){
+                                    try {
+                                        let keyName = redisKey + element.name;
+                                        delete element.name;
+                                        redisConn.set(keyName, stringify(element)); 
+                                    } catch (error) {
+                                        log("error", "INIT/db/redis", "Failed to set role in redis.");
+                                        reject(error);
+                                    }
+                                    resolve({
+                                        "log": log,
+                                        "mysql": mysqlConn,
+                                        "redis": redisConn,
+                                        "siteConfig": siteConfig,
+                                        "bootConfig": bootConfig
+                                    });
+                                }
+                            }
+                        });
+                    }
                 });
             }).catch(function (err) {
                 reject(err);
