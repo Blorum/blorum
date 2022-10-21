@@ -7,8 +7,6 @@ import {
     mergeJSON, getFinalPermission, removeElementFromArray
 } from "./utils.mjs";
 
-import { default as DMP } from "diff-match-patch";
-
 import { v4 as uuidv4 } from 'uuid';
 
 import stringify from "quick-stable-stringify";
@@ -21,12 +19,33 @@ class IAPI {
         this.log = log;
         this.salt = salt;
         this.rp = redisPrefix;
-        //For util functions in IAPI, redis prefix will not be automatically added.
-        //Redis prefix needed to be added manually in caller function.
+
         this.log("log", "IAPI", "IAPI instance created.");
     }
     timestamp(){
         return new Date().getTime();
+    }
+    changeSiteConfig(actions){
+        //Update IAPI object and database in the same time.
+        /* Actions = a list of {
+            "name": the keyname of the config,
+            "to": the desired value
+        } */
+        return new Promise((resolve, reject) => {
+            let arrLen = actions.length;
+            let mysqlWritePromisePool = [];
+            for(var i=0;i<arrLen;i++){
+                let actionName = actions[i].name;
+                let actionTo = actions[i].to;
+                siteConfig[actionName] = actionTo;
+                mysqlWritePromisePool.push(new Promise((resolve, reject) => {
+                    //todo: write database
+                }));
+            }
+            mysqlWritePromisePool.allSettled((results) => {
+                //todo: check fail&success, return
+            })
+        });
     }
 
     getRedisKeyIfExists(redisKey){
@@ -175,7 +194,8 @@ class IAPI {
                                     resolve(null);
                                 }else{
                                     let roles = results[0].roles.split(",");
-                                    for(let i = 0; i < roles.length; i++){
+                                    let arrLen = roles.length;
+                                    for(let i = 0; i < arrLen; i++){
                                         roles[i] = roles[i].replace(/{{/g, "");
                                         roles[i] = roles[i].replace(/}}/g, "");
                                     }
@@ -531,12 +551,14 @@ class IAPI {
                 });
             }else{
                 if(uid != null){
-                    for(var i = 0; i < uid.length; i++){
+                    let uidArrLen = uid.length;
+                    for(var i = 0; i < uidArrLen; i++){
                         constraint.uid.add("uid = " + uid[i]);
                     }
                 }
                 if(level != null){
-                    for(var i = 0; i < level.length; i++){
+                    let levelArrLen = level.length;
+                    for(var i = 0; i < levelArrLen; i++){
                         constraint.level.add("level = " + level[i]);
                     }
                 }
@@ -571,46 +593,54 @@ class IAPI {
 
     }
     alterArticle(){
-        //diff-match-patch
-        /*
-        
-var dmp = new diff_match_patch();
 
-  var text1
-  var text2
-  dmp.Diff_Timeout
-  dmp.Diff_EditCost
-
-    dmp.diff_cleanupSemantic(d);
-
-    dmp.diff_cleanupEfficiency(d);
- */
     }
-    deleteArticle(){
+    deleteArticle(id){
 
     }
 
-    createPost(){
+    createPost(uid, title, content, forum, attach_to, category){
 
     }
 
-    editPost(){}
+    editPost(postID, actions){
+        //Action types: title, user, content, forum, attach, category
+    }
 
-    deletePost(){}
+    deletePost(postID){
 
-    createComment(){}
+    }
 
-    editComment(){}
+    createComment(targetType, targetID, content, uid, reply_to){
 
-    deleteComment(){}
+    }
 
-    createTag(){}
+    editComment(targetType, targetID, actions){
 
-    deleteTag(){}
+    }
 
-    createCategory(){}
+    deleteComment(targetType, targetID){
 
-    deleteCategory(){}
+    }
+
+    createCategory(name, description){
+
+    }
+
+    editCategory(name, actions){
+        //Action types: description, name
+        return new Promise((resolve, reject) => {
+            //todo. 1st: find category ID with name.
+        });
+    }
+
+    deleteCategory(name){
+
+    }
+
+    depriveCategory(name){
+
+    }
 
     createRole(roleType, name, permission){
         //todo
@@ -674,6 +704,13 @@ var dmp = new diff_match_patch();
                 }
             )
         });
+    }
+    depriveTag(name){
+
+    }
+
+    createReact(targetType, targetID, react){
+
     }
 }
 

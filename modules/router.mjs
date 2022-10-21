@@ -13,7 +13,7 @@ import { default as RCM } from "./rate_control.mjs";
 import { default as SCM } from "./session_check.mjs";
 import { default as STM } from "./statistic.mjs";
 import { default as CSM } from "./cache.mjs";
-import { stringify } from "querystring";
+import stringify from "quick-stable-stringify";
 
 function rejectForLoginStatusDecorator(func){
     return function(req, res){
@@ -295,8 +295,13 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     });
 
-    blorumRouter.post('/user/permissions', function(req, res) {
+    blorumRouter.put('/user/permissions', function(req, res) {
         //Todo: set user permission API
+        if(req.isUserSessionValid){
+            //add permission check here!
+                let b = req.body;
+                let actionList = b.actions;
+        }
     });
 
     blorumRouter.post('/user/logout', function (req, res) {
@@ -345,6 +350,14 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.post('/user/invite', function (req, res) {
+        if(req.isUserSessionValid){
+            let b = req.body;
+            let inviteeEmail = b.email;
+            let msgLeft = b.msg;
+            //todo
+        }else{
+            res.sendStatus(401);
+        }
     });
     
     blorumRouter.post('/user/remove', function (req, res) {
@@ -395,6 +408,8 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     });
 
     blorumRouter.put('/react', function (req, res) {
+        let b = req.body;
+        let targetType = b.type; // 0 = Article, 1 = Post, 2 = Comment, 3 = Note
     });
 
     blorumRouter.put('/forum', function (req, res) {
@@ -408,6 +423,8 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
 
     
     blorumRouter.delete('/article', function (req, res) {
+        let b = req.body;
+        let id = b.id;
     });
 
     blorumRouter.delete('/post', function (req, res) {
@@ -428,11 +445,15 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     blorumRouter.delete('/category', function (req, res) {
     });
 
-    blorumRouter.delete('/tag', function (req, res) {
+    blorumRouter.put('/site_config', function (req,res){
+        if(isUserSessionValid){
+
+        }
     });
 
 
     blorumRouter.post('/heartbeat', function (req, res) {
+        
     });
 
     blorumRouter.get('*', function(req, res){

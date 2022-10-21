@@ -408,10 +408,13 @@ function removeElementFromArray(arr, element){
     }
 }
 
+function filterAction(obj){
+    //Remove all dumplicate actions in an actionList
+}
 export {
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken,
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
     objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum, getLPermissionSum, getFinalPermission,
-    removeElementFromArray, InfFixProxy
+    removeElementFromArray, InfFixProxy, filterAction
 };
