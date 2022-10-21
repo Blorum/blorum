@@ -332,7 +332,7 @@ class IAPI {
                                             this.log("debug", "IAPI", "Failed to set redis key: " + rolesRedisKey);
                                             reject(err);
                                         } else {
-                                            this.redis.pexpire(rolesRedisKey, cookie_expire_after, (err, results) => {
+                                            this.redis.expire(rolesRedisKey, cookie_expire_after, (err, results) => {
                                                 if (err) {
                                                     this.log("debug", "IAPI", "Failed to set redis key expire: " + rolesRedisKey);
                                                     reject(err);

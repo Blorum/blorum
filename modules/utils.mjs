@@ -314,6 +314,7 @@ function getPermissionSum(arr) {
                 "post": {
                     "self": 0,
                     "tag": 0,
+                    "category": 0,
                     "forum": 0
                 },
                 "article": {
@@ -328,7 +329,6 @@ function getPermissionSum(arr) {
                 "forum": 0,
             },
             "create": {
-                "tag": 0,
                 "category": 0,
                 "post": 0,
                 "react": 0,
@@ -340,7 +340,6 @@ function getPermissionSum(arr) {
                 "user": 0
             },
             "remove": {
-                "tag": 0,
                 "category": 0,
                 "post": 0,
                 "react": 0,
@@ -350,6 +349,9 @@ function getPermissionSum(arr) {
                 "forum": 0,
                 "report": 0,
                 "user": 0
+            },
+            "site": {
+                "change_config": 0
             }
         }
     };

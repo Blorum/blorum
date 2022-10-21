@@ -61,4 +61,7 @@ INSERT INTO `config`(`flag`, `value`) VALUES ("ses_config","{}");
 INSERT INTO `config`(`flag`, `value`) VALUES ("diff_timeout","0.5");
 INSERT INTO `config`(`flag`, `value`) VALUES ("diff_editcost","12");
 
+INSERT INTO `config`(`flag`, `value`) VALUES ("removed_res_keep","true");
+INSERT INTO `config`(`flag`, `value`) VALUES ("removed_res_keep_time","604800");
+
 COMMIT;
