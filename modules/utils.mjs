@@ -1,4 +1,4 @@
-import { default as blake3 } from "blake3";
+import { blake3 } from '@noble/hashes/blake3';
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 import parse from "simdjson";
@@ -71,7 +71,7 @@ function outputLogsColored(level, context, info) {
 }
 
 function blake3Hash(text) {
-    return blake3.hash(text, { "length": 66 }).toString("base64");
+    return blake3(text, { "length": 66 }).toString("base64");
 }
 
 function generateNewToken(salt, username) {
