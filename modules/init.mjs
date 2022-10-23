@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import { outputLogsColored, outputLogs } from "./utils.mjs";
 import { default as mysql } from "mysql2";
 import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
+import { default as child_process } from 'child_process';
 
 import stringify from "quick-stable-stringify";
 
@@ -87,6 +88,17 @@ function initializeBlorumServer() {
                                         log("error", "INIT/db/redis", "Failed to set role in redis.");
                                         reject(error);
                                     }
+                                    const scheduleDaemon = child_process.fork('./scheduled.mjs', {
+                                        stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+                                    });
+                                    scheduleDaemon.send(
+                                        {
+                                            "action": "init",
+                                            "log": log,
+                                            "redis": bootConfig.database.redis,
+                                            "mysql": bootConfig.database.mysql,
+                                        }
+                                    );
                                     resolve({
                                         "log": log,
                                         "mysql": mysqlConn,
