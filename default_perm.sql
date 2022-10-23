@@ -350,5 +350,21 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
             "site": {
                 "change_config": 0
             }
-        }');
+        }'),
+
+('guest', 0,1, '{
+    "flags":[
+        
+    ],
+    "site": {
+        "allow_register": true,
+        "allow_login": true,
+        "get_title": true,
+        "get_description": true,
+        "get_excerpt": true,
+        "get_keywords": true,
+        "get_logo": true
+    }
+}'
+, '');
 
