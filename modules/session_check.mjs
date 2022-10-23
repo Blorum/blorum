@@ -37,7 +37,15 @@ function SessionCheckMiddleware(log, redis, iapi){
                             res.clearCookie('blorum_permissions');
                             res.status(412).send("Invalid(expired) session.");
                         }else{
-                            next();
+                            iapi.getRolePermissions("guest").then(function(result){
+                                if(result === null){
+                                    iapi.logInsert(0, "Guest permission is not defined! Fallbacking to zero permissions", 3);
+                                    req.validUserPermissions = null;
+                                }else{
+                                    req.validUserPermissions = result.permissions;
+                                }
+                                next();
+                            });
                         }
                     }
                 }).catch(function(err){
