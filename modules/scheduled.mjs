@@ -6,7 +6,7 @@ process.on('message', (message) => {
         case "init":
             mysql = message.mysql;
             redis = message.redis;
-            process.send("INIT");
+            process.send("init");
             break;
     }
 });
