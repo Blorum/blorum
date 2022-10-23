@@ -88,25 +88,36 @@ function initializeBlorumServer() {
                                         log("error", "INIT/db/redis", "Failed to set role in redis.");
                                         reject(error);
                                     }
-                                    const scheduleDaemon = child_process.fork('./scheduled.mjs', {
-                                        stdio: ['pipe', 'pipe', 'pipe', 'ipc']
-                                    });
-                                    scheduleDaemon.send(
-                                        {
-                                            "action": "init",
-                                            "log": log,
-                                            "redis": bootConfig.database.redis,
-                                            "mysql": bootConfig.database.mysql,
-                                        }
-                                    );
-                                    resolve({
-                                        "log": log,
-                                        "mysql": mysqlConn,
-                                        "redis": redisConn,
-                                        "siteConfig": siteConfig,
-                                        "bootConfig": bootConfig
-                                    });
                                 }
+                                const scheduleDaemon = child_process.fork('./modules/scheduled.mjs', {
+                                    stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+                                });
+                                scheduleDaemon.send(
+                                    {
+                                        "action": "init",
+                                        "redis": bootConfig.database.redis,
+                                        "mysql": bootConfig.database.mysql,
+                                    }
+                                );
+                                scheduleDaemon.on('message', (message) => {
+                                    if (message === "init") {
+                                        log("log", "INIT/scheduleDaemon", "Successfully initialized scheduleD.");
+                                        resolve({
+                                            "log": log,
+                                            "mysql": mysqlConn,
+                                            "redis": redisConn,
+                                            "siteConfig": siteConfig,
+                                            "bootConfig": bootConfig,
+                                            "scheduleDaemon": scheduleDaemon
+                                        });
+                                    }else{
+                                        log("log", "INIT/scheduleDaemon", message);
+                                    }
+                                });
+                                scheduleDaemon.on('exit', (code, signal) => {
+                                    log("log", "INIT", "Schedule Daemon exited with code " + code + " and signal " + signal);
+                                    process.exit(1);
+                                });
                             }
                         });
                     }
