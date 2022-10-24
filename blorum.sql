@@ -1,11 +1,5 @@
--- phpMyAdmin SQL Dump
--- version 5.0.4
--- https://www.phpmyadmin.net/
---
--- Host: localhost
--- Generation Time: Oct 19, 2022 at 02:43 PM
--- Server version: 5.7.30-log
--- PHP Version: 8.0.3
+CREATE DATABASE if not exists blorum;
+use blorum;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;

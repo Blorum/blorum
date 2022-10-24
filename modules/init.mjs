@@ -100,18 +100,20 @@ function initializeBlorumServer() {
                                     }
                                 );
                                 scheduleDaemon.on('message', (message) => {
-                                    if (message === "init") {
-                                        log("log", "INIT/scheduleDaemon", "Successfully initialized scheduleD.");
-                                        resolve({
-                                            "log": log,
-                                            "mysql": mysqlConn,
-                                            "redis": redisConn,
-                                            "siteConfig": siteConfig,
-                                            "bootConfig": bootConfig,
-                                            "scheduleDaemon": scheduleDaemon
-                                        });
-                                    }else{
-                                        log("log", "INIT/scheduleDaemon", message);
+                                    switch (message.action) {
+                                        case "init":
+                                            log("log", "INIT/ScheduleD", "Successfully initialized scheduleD.");
+                                            resolve({
+                                                "log": log,
+                                                "mysql": mysqlConn,
+                                                "redis": redisConn,
+                                                "siteConfig": siteConfig,
+                                                "bootConfig": bootConfig,
+                                                "scheduleDaemon": scheduleDaemon
+                                            });
+                                            break;
+                                        case "log":
+                                            log(message.level, "ScheduleD", message.info);
                                     }
                                 });
                                 scheduleDaemon.on('exit', (code, signal) => {
