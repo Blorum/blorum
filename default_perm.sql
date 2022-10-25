@@ -1,3 +1,4 @@
+use blorum;
 INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_limits`) VALUES
 ('admin', 1, 1, '
 {
@@ -27,7 +28,7 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "note": -1,
                 "user": -1,
                 "category": -1,
-                "forum": -1,
+                "forum": -1
             },
             "create": {
                 "category": -1,
@@ -86,7 +87,7 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "note": 20,
                 "user": 0,
                 "category": 0,
-                "forum": 0,
+                "forum": 0
             },
             "create": {
                 "category": 10,
@@ -146,7 +147,7 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "note": 40,
                 "user": 0,
                 "category": 40,
-                "forum": 50,
+                "forum": 50
             },
             "create": {
                 "category": 60,
@@ -204,7 +205,7 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "note": 40,
                 "user": 60,
                 "category": 60,
-                "forum": 60,
+                "forum": 60
             },
             "create": {
                 "category": 60,
@@ -262,7 +263,7 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "note": 40,
                 "user": 0,
                 "category": 0,
-                "forum": 0,
+                "forum": 0
             },
             "create": {
                 "category": 0,
@@ -320,7 +321,7 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "note": 60,
                 "user": 0,
                 "category": 0,
-                "forum": 0,
+                "forum": 0
             },
             "create": {
                 "category": 10,
@@ -366,5 +367,5 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
         "get_logo": true
     }
 }'
-, '');
+, '{}');
 
