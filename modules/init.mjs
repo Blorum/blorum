@@ -112,8 +112,6 @@ function initializeBlorumServer() {
                                                 "scheduleDaemon": scheduleDaemon
                                             });
                                             break;
-                                        case "log":
-                                            log(message.level, "ScheduleD", message.info);
                                     }
                                 });
                                 scheduleDaemon.on('exit', (code, signal) => {

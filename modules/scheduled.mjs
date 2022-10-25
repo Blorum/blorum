@@ -24,9 +24,9 @@ function beforeInit(message){
 }
 
 function afterInit(message){
-    setInterval(function(){
-        log("log", "test heartbeat");
-    },1000);
+    switch(message.action){
+
+    }
 }
 
 var eventExecutor = beforeInit;

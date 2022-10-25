@@ -4,7 +4,6 @@ JSON.parse = parse.parse;
 
 import { default as express } from "express";
 import { version, innerVersion, isAllString, strNotOnlyNumber, objHasAllProperties} from "./utils.mjs";
-import { IAPI } from "./iapi.mjs";
 import { default as fs } from "fs";
 import { fileURLToPath } from "url";
 import { join } from "path";
@@ -26,7 +25,7 @@ function rejectForLoginStatusDecorator(func){
 }
 
 
-function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
+function initializeRouter(iapi, mysqlConnection, redisConnection, siteConfig, log){
     let getReqInfo = function(req){
         let ip = null;
         let ua = null;
@@ -59,8 +58,6 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
         }
     };
 
-    const iapi = new IAPI(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix);
-    
     let blorumRouter = express();
     let commonHeader = {
         "X-Powered-By": "Blorum",
@@ -463,9 +460,9 @@ function initializeRouter(mysqlConnection, redisConnection, siteConfig, log, sal
     return blorumRouter;
 }
 
-export default function(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix){
+export default function(iapi, mysqlConnection, redisConnection, siteConfig, log){
     try {
-        let router = initializeRouter(mysqlConnection, redisConnection, siteConfig, log, salt, redisPrefix);
+        let router = initializeRouter(iapi, mysqlConnection, redisConnection, siteConfig, log);
         log("log","Router","Router initialized.");
         return router;
     } catch (error) {

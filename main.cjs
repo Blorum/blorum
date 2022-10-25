@@ -28,12 +28,22 @@ async function wrapper() {
         console.log("[WRAPPER] Starting Blorum Server (" + utils.version + ")...");
         const initializeBlorumServer = (await import("./modules/init.mjs")).initializeBlorumServer;
         const initializeRouter = (await import("./modules/router.mjs")).default;
-        const extensionList = (await import("./modules/extension.mjs")).extensionList;
-        
+        //const extensionList = (await import("./modules/extension.mjs")).getExtensionsList;  
         const prerequisite = initializeBlorumServer();
-        prerequisite.then(function (results) {
+        prerequisite.then(async (results) => {
+            scheduleDaemon = results.scheduleDaemon;
+            scheduleDaemon.on('message', (message) => {
+                switch (message.action) {
+                    case "log":
+                        results.log(message.level, "ScheduleD", message.info);
+                        break;
+                }
+            });
+            
+            const IAPI = (await import("./modules/iapi.mjs")).IAPI;
+            const iapi = new IAPI(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix);
             results.log("log", "Main", "Blorum pre-initialization finished.");
-            let router = initializeRouter(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix);
+            let router = initializeRouter(iapi, results.mysql, results.redis, results.siteConfig, results.log);
             if (results.bootConfig.port <= 1000 && results.bootConfig.port != 0) {
                 results.log("warn", "Main", "Port might cause conflict.");
                 results.log("warn", "Main", "If you are under *Unix system, this require privilege.");
