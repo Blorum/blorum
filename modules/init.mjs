@@ -7,6 +7,10 @@ import { promisifiedMysqlConnect, promisifiedRedisConnect } from "./utils.mjs";
 import { default as child_process } from 'child_process';
 
 import stringify from "quick-stable-stringify";
+import parse from "simdjson";
+JSON.parse = parse.parse;
+
+var _mariadb = false;
 
 function initializeBlorumServer() {
     const __dirname = fileURLToPath(import.meta.url);
@@ -55,6 +59,12 @@ function initializeBlorumServer() {
             let mysqlPromise = promisifiedMysqlConnect(mysqlConnection);
             mysqlPromise.then(function () {
                 log("log", "INIT/db/mysql", "Successfully connected to MySQL Server.");
+                let mysqlServerVer = mysqlConnection._handshakePacket.serverVersion.toLowerCase();
+                if(mysqlServerVer.indexOf("mariadb") !== -1){
+                    log("warn", "INIT", "MariaDB detected, using MariaDB compatibility mode.");
+                    log("warn", "INIT", "MariaDB compatibility mode is not fully tested, please consider using MySQL instead.");
+                    _mariadb = true;
+                }
             }).catch(function (err) {
                 log("error", "INIT/db/mysql", "Failed to connect to MySQL Server.");
                 reject(err);
@@ -83,6 +93,10 @@ function initializeBlorumServer() {
                                     try {
                                         let keyName = redisKey + element.name;
                                         delete element.name;
+                                        if(_mariadb){
+                                            element.permissions = JSON.parse(element.permissions);
+                                            element.rate_limits = JSON.parse(element.rate_limits);
+                                        }
                                         redisConn.set(keyName, stringify(element)); 
                                     } catch (error) {
                                         log("error", "INIT/db/redis", "Failed to set role in redis.");
@@ -109,7 +123,8 @@ function initializeBlorumServer() {
                                                 "redis": redisConn,
                                                 "siteConfig": siteConfig,
                                                 "bootConfig": bootConfig,
-                                                "scheduleDaemon": scheduleDaemon
+                                                "scheduleDaemon": scheduleDaemon,
+                                                "_mariadb": _mariadb
                                             });
                                             break;
                                     }

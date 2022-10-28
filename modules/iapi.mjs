@@ -12,7 +12,8 @@ import { v4 as uuidv4 } from 'uuid';
 import stringify from "quick-stable-stringify";
 
 class IAPI {
-    constructor(mysql, redis, siteConfig, log, salt, redisPrefix, scheduleDaemon) {
+    constructor(meta, mysql, redis, siteConfig, log, salt, redisPrefix, scheduleDaemon) {
+        this.meta = meta;
         this.mysql = mysql;
         this.redis = redis;
         this.siteConfig = siteConfig;
@@ -600,7 +601,7 @@ class IAPI {
         let statusProto = {};
 
     }
-    alterArticle(){
+    alterArticle(id, actionList){
 
     }
     deleteArticle(id){
