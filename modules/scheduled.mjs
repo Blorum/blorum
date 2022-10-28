@@ -1,13 +1,15 @@
 import { default as process } from 'process';
-import { clearInterval } from 'timers';
+
 var taskList = [];
 var mysql, redis;
+var cacheMap = {};
 var mainLoop = {
     "_destroyed": true
 };
 
 function log(level, message){
     process.send({
+        "id": null,
         "action": "log",
         "level": level,
         "info": message
@@ -20,6 +22,7 @@ function beforeInit(message){
             mysql = message.mysql;
             redis = message.redis;
             process.send({
+                "id": null,
                 "action": "init"
             });
             eventExecutor = afterInit;
@@ -38,6 +41,7 @@ function afterInit(message){
             clearInterval(mainLoop);
         case "loop_status":
             process.send({
+                "id": message.id,
                 "status": mainLoop._destroyed
             });
         case "create_task":
@@ -45,12 +49,7 @@ function afterInit(message){
         case "fetch_task_list":
             break;
         default:
-            process.send({
-                "action": "log",
-                "id": message.id,
-                "level": "log",
-                "info": JSON.stringify(message)
-            });
+            log("error", "Unknown action, message: " + message)
     }
 }
 
