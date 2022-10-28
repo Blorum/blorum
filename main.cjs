@@ -8,8 +8,17 @@ async function wrapper() {
         const initializeBlorumServer = (await import("./modules/init.mjs")).initializeBlorumServer;
         const prerequisite = initializeBlorumServer();
         prerequisite.then(async function (results) {
+            scheduleDaemon = results.scheduleDaemon;
+            scheduleDaemon.on('message', (message) => {
+                switch (message.action) {
+                    case "log":
+                        results.log(message.level, "ScheduleD", message.info);
+                        break;
+                }
+            });
+
             const IAPI = (await import("./modules/iapi.mjs")).IAPI;
-            const iapi = new IAPI(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix);
+            const iapi = new IAPI(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix, scheduleDaemon);
             const rl = readline.createInterface({
                 input: process.stdin,
                 output: process.stdout,
@@ -41,7 +50,7 @@ async function wrapper() {
             });
             
             const IAPI = (await import("./modules/iapi.mjs")).IAPI;
-            const iapi = new IAPI(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix);
+            const iapi = new IAPI(results.mysql, results.redis, results.siteConfig, results.log, results.bootConfig.security.digest_salt, results.bootConfig.database.redis.prefix, scheduleDaemon);
             results.log("log", "Main", "Blorum pre-initialization finished.");
             let router = initializeRouter(iapi, results.mysql, results.redis, results.siteConfig, results.log);
             if (results.bootConfig.port <= 1000 && results.bootConfig.port != 0) {

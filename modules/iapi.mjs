@@ -4,7 +4,7 @@ JSON.parse = parse.parse;
 import {
     generateNewToken, blake3Hash, objHasAllProperties,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, strNotOnlyNumber,
-    mergeJSON, getFinalPermission, removeElementFromArray
+    mergeJSON, getFinalPermission, removeElementFromArray, syncScheduleDMsg
 } from "./utils.mjs";
 
 import { v4 as uuidv4 } from 'uuid';
@@ -12,18 +12,26 @@ import { v4 as uuidv4 } from 'uuid';
 import stringify from "quick-stable-stringify";
 
 class IAPI {
-    constructor(mysql, redis, siteConfig, log, salt, redisPrefix) {
+    constructor(mysql, redis, siteConfig, log, salt, redisPrefix, scheduleDaemon) {
         this.mysql = mysql;
         this.redis = redis;
         this.siteConfig = siteConfig;
         this.log = log;
         this.salt = salt;
         this.rp = redisPrefix;
+        this.scheduleDaemon = scheduleDaemon;
 
         this.log("log", "IAPI", "IAPI instance created.");
     }
     timestamp(){
         return new Date().getTime();
+    }
+    sendScheduleDMsg(action, load){
+        return syncScheduleDMsg(this.scheduleDaemon, action, load);
+    }
+
+    getScheduleDStatus(){
+        
     }
     changeSiteConfig(actions){
         //Update IAPI object and database in the same time.

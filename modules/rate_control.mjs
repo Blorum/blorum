@@ -68,7 +68,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                                 let IPTokenBucket = JSON.parse(result);
                                 judger(reqPath, reqMethod, IPTokenBucket).then((result) => {
                                     //update with result.newBucket
-                                    this.redis.set(redisKeyIT, JSON.stringify(result.newBucket), "PX", TTLLeft, (err, res) => {
+                                    this.redis.set(redisKeyIT, JSON.stringify(result.newBucket), "EX", TTLLeft, (err, res) => {
                                         if(err){
                                             reject({
                                                 "status": 500,
@@ -94,7 +94,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                             });
                         }else{
                             let newBucket = this.ipRateLimits;
-                            this.redis.set(redisKeyIT, JSON.stringify(newBucket), "PX", this.expireThreshold,
+                            this.redis.set(redisKeyIT, JSON.stringify(newBucket), "EX", this.expireThreshold,
                                 (err, res) => {
                                     if(err){
                                         reject({
@@ -127,7 +127,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                             let userTokenBucket = JSON.parse(result);
                             judger(reqPath, reqMethod, userTokenBucket).then((result) => {
                                 //update with result.newBucket
-                                this.redis.set(redisKeyUT, JSON.stringify(result.newBucket), "PX", TTLLeft, (err, res) => {
+                                this.redis.set(redisKeyUT, JSON.stringify(result.newBucket), "EX", TTLLeft, (err, res) => {
                                     if(err){
                                         reject({
                                             "status": 500,
@@ -153,7 +153,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                         });
                     }else{
                         let permissionExpireAfter = req.validUserPermissions.permissions.cookie_expire_after;
-                        this.redis.set(redisKeyUT, JSON.stringify(req.validUserPermissions.rate_limits), "PX", permissionExpireAfter, (err) => {
+                        this.redis.set(redisKeyUT, JSON.stringify(req.validUserPermissions.rate_limits), "EX", permissionExpireAfter, (err) => {
                             if(err){
                                 reject({
                                     "status": 500,

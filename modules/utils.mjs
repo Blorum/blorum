@@ -2,10 +2,11 @@ import { blake3 } from '@noble/hashes/blake3';
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 import parse from "simdjson";
+import { v4 as uuidv4 } from 'uuid';
 JSON.parse = parse.parse;
 
-const version = "1.0.0 in_dev (unf, debug) dv 10007";
-const innerVersion = "10000000";
+const version = "1.0.0 Development";
+const innerVersion = "0";
 
 const c = {
     "reset": "\x1b[0m",
@@ -411,10 +412,31 @@ function removeElementFromArray(arr, element){
 function filterAction(obj){
     //Remove all dumplicate actions in an actionList
 }
+
+function syncScheduleDMsg(daemon, action, load){
+    let messageID = uuidv4();
+    let message = {
+        "id": messageID,
+        "action": action,
+        "data": load
+    };
+    return new Promise((resolve, reject) => {
+        let executor = (msg) => {
+            if(msg.id == messageID){
+                resolve(msg);
+                //remove this listener
+                daemon.removeListener("message", executor);
+            }
+        };
+        daemon.on("message", executor);
+        daemon.send(message);
+    });
+}
+
 export {
     version, innerVersion, outputLogs, outputLogsColored, blake3Hash, generateNewToken,
     isModuleAvailable, promisifiedMysqlConnect, promisifiedRedisConnect,
     strASCIIOnly, strStrictLegal, basicPasswordRequirement, isValidEmail, isAllString,
     objHasAllProperties, strNotOnlyNumber, mergeJSON, mergeArray, cookieParser, pureArray, filterSpace, getPermissionSum, getLPermissionSum, getFinalPermission,
-    removeElementFromArray, InfFixProxy, filterAction
+    removeElementFromArray, InfFixProxy, filterAction, syncScheduleDMsg
 };
