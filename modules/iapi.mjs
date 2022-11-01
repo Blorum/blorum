@@ -14,6 +14,7 @@ import stringify from "quick-stable-stringify";
 class IAPI {
     constructor(meta, mysql, redis, siteConfig, log, salt, redisPrefix, scheduleDaemon) {
         this.meta = meta;
+        this.mariadbMode = this.meta.mariadb;
         this.mysql = mysql;
         this.redis = redis;
         this.siteConfig = siteConfig;
@@ -32,7 +33,34 @@ class IAPI {
     }
 
     getScheduleDStatus(){
-        
+        return new Promise((resolve, reject) => {
+            syncScheduleDMsg(
+                this.scheduleDaemon,
+                "loop_status",
+                null
+            ).then((res) => {
+                resolve(res.status);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+    startScheduleD(){ //todo: error handling
+        return syncScheduleDMsg(
+            this.scheduleDaemon,
+            "start_loop",
+            null
+        );
+    }
+    stopScheduleD(){ //todo: error handling
+        return syncScheduleDMsg(
+            this.scheduleDaemon,
+            "loop_status",
+            null
+        );
+    }
+    addScheduleDTask(type, data){
+        //future
     }
     changeSiteConfig(actions){
         //Update IAPI object and database in the same time.

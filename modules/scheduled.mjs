@@ -33,12 +33,33 @@ function beforeInit(message){
 function afterInit(message){
     switch(message.action){
         case "start_loop":
-            mainLoop = setInterval(function(){
+            try{
+                mainLoop = setInterval(function(){
 
-            },message.interval);
+                },message.interval);
+                process.send({
+                    "id": message.id,
+                    "status": "success"
+                });
+            }catch(e){
+                process.send({
+                    "id": message.id,
+                    "status": "error",
+                    "error": e
+                });
+            }
             break;
         case "stop_loop":
-            clearInterval(mainLoop);
+            try{
+                clearInterval(mainLoop);
+            }catch(e){
+                process.send({
+                    "id": message.id,
+                    "status": "error",
+                    "error": e
+                });
+            }
+            break;
         case "loop_status":
             process.send({
                 "id": message.id,

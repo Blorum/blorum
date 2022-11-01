@@ -392,10 +392,11 @@ function initializeRouter(iapi, mysqlConnection, redisConnection, siteConfig, lo
         let title = b.title;
         let excerpt = b.excerpt;
         let tags = b.tags;
-        
+        let statisticsProto = {};
     });
 
     blorumRouter.put('/post', function (req, res) {
+        let statisticsProto = {};
     });
 
     blorumRouter.put('/comment', function (req, res) {
@@ -448,6 +449,7 @@ function initializeRouter(iapi, mysqlConnection, redisConnection, siteConfig, lo
         }
     });
 
+    
 
     blorumRouter.post('/heartbeat', function (req, res) {
         

@@ -357,26 +357,127 @@ function getPermissionSum(arr) {
         }
     };
     let sets = {
-        "flag": new Set()
+        "flag": new Set(),
+        "user_permission_read_allow": new Set(),
+        "user_role_read_allow": new Set(),
+        "role_read_allow": new Set(),
+        "role_grant_allow": new Set(),
+        "role_remove_allow": new Set(),
+        "article_read_category_allow": new Set(),
+        "article_read_tag_allow": new Set(),
+        "article_create_category_allow": new Set(),
+        "article_create_tag_allow": new Set(),
+        "forum_default_read_category_allow": new Set(),
+        "forum_default_read_tag_allow": new Set(),
+        "comment_post_tag_allow": new Set(),
+        "comment_post_category_allow": new Set()
+
     };
     let isRateLimitContained = false;
     var arrLen = arr.length;
+    //The following part is generated to ensure the best performance, do not "optimize" it
     for (var i = 0; i < arrLen; i++) {
-        let perm = arr[i];
-        perm.permissions.flags.forEach(element => {
-            sets.flag.add(element);
-        });
-        if (perm.with_rate_limit == 1) {
+        if (perm.with_rate_limit === 1) {
             isRateLimitContained = true;
-            //todo: rate limit merge
         }
-        // if(perm.permissions.user.permission > permSum.permissions.user.permission){
-        //     permSum.permissions.user.permission = perm.permissions.user.permission;
-        // }
-        // console.log(perm);
-        // if(perm.permissions.max_session > permSum.permissions.max_session){
-        //     permSum.permissions.max_session = perm.permissions.max_session;
-        // }
+        //Flag processing
+        let perm = arr[i];
+        let flagLen = perm.permissions.flags.length;
+        for (var j = 0; j < flagLen; j++) {
+            sets.flag.add(perm.permissions.flags[j]);
+        }
+        let user_permission_read_allowLen = perm.permissions.user.permission.read.allow.length;
+        for (var j = 0; j < user_permission_read_allowLen; j++) {
+            sets.user_permission_read_allow.add(perm.permissions.user.permission.read.allow[j]);
+        }
+        let user_role_read_allowLen = perm.permissions.user.role.read.allow.length;
+        for (var j = 0; j < user_role_read_allowLen; j++) {
+            sets.user_role_read_allow.add(perm.permissions.user.role.read.allow[j]);
+        }
+        let role_read_allowLen = perm.permissions.role.read.allow.length;
+        for (var j = 0; j < role_read_allowLen; j++) {
+            sets.role_read_allow.add(perm.permissions.role.read.allow[j]);
+        }
+        let role_grant_allowLen = perm.permissions.role.grant.allow.length;
+        for (var j = 0; j < role_grant_allowLen; j++) {
+            sets.role_grant_allow.add(perm.permissions.role.grant.allow[j]);
+        }
+        let role_remove_allowLen = perm.permissions.role.remove.allow.length;
+        for (var j = 0; j < role_remove_allowLen; j++) {
+            sets.role_remove_allow.add(perm.permissions.role.remove.allow[j]);
+        }
+        let article_read_category_allowLen = perm.permissions.article.read.category.allow.length;
+        for (var j = 0; j < article_read_category_allowLen; j++) {
+            sets.article_read_category_allow.add(perm.permissions.article.read.category.allow[j]);
+        }
+        let article_read_tag_allowLen = perm.permissions.article.read.tag.allow.length;
+        for (var j = 0; j < article_read_tag_allowLen; j++) {
+            sets.article_read_tag_allow.add(perm.permissions.article.read.tag.allow[j]);
+        }
+        let article_create_category_allowLen = perm.permissions.article.create.category.allow.length;
+        for (var j = 0; j < article_create_category_allowLen; j++) {
+            sets.article_create_category_allow.add(perm.permissions.article.create.category.allow[j]);
+        }
+        let article_create_tag_allowLen = perm.permissions.article.create.tag.allow.length;
+        for (var j = 0; j < article_create_tag_allowLen; j++) {
+            sets.article_create_tag_allow.add(perm.permissions.article.create.tag.allow[j]);
+        }
+        let forum_default_read_category_allowLen = perm.permissions.forum.default.read.category.allow.length;
+        for (var j = 0; j < forum_default_read_category_allowLen; j++) {
+            sets.forum_default_read_category_allow.add(perm.permissions.forum.default.read.category.allow[j]);
+        }
+        let forum_default_read_tag_allowLen = perm.permissions.forum.default.read.tag.allow.length;
+        for (var j = 0; j < forum_default_read_tag_allowLen; j++) {
+            sets.forum_default_read_tag_allow.add(perm.permissions.forum.default.read.tag.allow[j]);
+        }
+        let comment_post_tag_allowLen = perm.permissions.comment.post.tag.allow.length;
+        for (var j = 0; j < comment_post_tag_allowLen; j++) {
+            sets.comment_post_tag_allow.add(perm.permissions.comment.post.tag.allow[j]);
+        }
+        let comment_post_category_allowLen = perm.permissions.comment.post.category.allow.length;
+        for (var j = 0; j < comment_post_category_allowLen; j++) {
+            sets.comment_post_category_allow.add(perm.permissions.comment.post.category.allow[j]);
+        }
+
+        //Value processing
+        if(perm.permissions.max_session > permSum.permissions.max_session) permSum.permissions.max_session = perm.permissions.max_session;
+        if(perm.permissions.cookie_expire_after > permSum.permissions.cookie_expire_after) permSum.permissions.cookie_expire_after = perm.permissions.cookie_expire_after;
+        if(perm.permissions.user.permission.read.default > permSum.permissions.user.permission.read.default) permSum.permissions.user.permission.read.default = perm.permissions.user.permission.read.default;
+        if(perm.permissions.user.role.read.default > permSum.permissions.user.role.read.default) permSum.permissions.user.role.read.default = perm.permissions.user.role.read.default;
+        if(perm.permissions.role.read.default > permSum.permissions.role.read.default) permSum.permissions.role.read.default = perm.permissions.role.read.default;
+        if(perm.permissions.role.grant.level > permSum.permissions.role.grant.level) permSum.permissions.role.grant.level = perm.permissions.role.grant.level;
+        if(perm.permissions.role.remove.level > permSum.permissions.role.remove.level) permSum.permissions.role.remove.level = perm.permissions.role.remove.level;
+        if(perm.permissions.article.read.default > permSum.permissions.article.read.default) permSum.permissions.article.read.default = perm.permissions.article.read.default;
+        if(perm.permissions.article.create.default > permSum.permissions.article.create.default) permSum.permissions.article.create.default = perm.permissions.article.create.default;
+        if(perm.permissions.comment.user.default > permSum.permissions.comment.user.default) permSum.permissions.comment.user.default = perm.permissions.comment.user.default;
+        if(perm.permissions.comment.article.default > permSum.permissions.comment.article.default) permSum.permissions.comment.article.default = perm.permissions.comment.article.default;
+        if(perm.permissions.tag.create > permSum.permissions.tag.create) permSum.permissions.tag.create = perm.permissions.tag.create;
+        if(perm.permissions.tag.remove > permSum.permissions.tag.remove) permSum.permissions.tag.remove = perm.permissions.tag.remove;
+        if(perm.permissions.tag.add.article > permSum.permissions.tag.add.article) permSum.permissions.tag.add.article = perm.permissions.tag.add.article;
+        if(perm.permissions.tag.add.post > permSum.permissions.tag.add.post) permSum.permissions.tag.add.post = perm.permissions.tag.add.post;
+        if(perm.permissions.report.create > permSum.permissions.report.create) permSum.permissions.report.create = perm.permissions.report.create;
+        if(perm.permissions.log.read > permSum.permissions.log.read) permSum.permissions.log.read = perm.permissions.log.read;
+    }
+    if(isRateLimitContained) {
+        permSum.with_rate_limit = 1;
+        for (var i = 0; i < arrLen; i++) {
+            let perm = arr[i];
+            if(perm.permissions.rate_limits.login > permSum.permissions.rate_limits.login) permSum.permissions.rate_limits.login = perm.permissions.rate_limits.login;
+            if(perm.permissions.rate_limits.invite > permSum.permissions.rate_limits.invite) permSum.permissions.rate_limits.invite = perm.permissions.rate_limits.invite;
+            if(perm.permissions.rate_limits.report > permSum.permissions.rate_limits.report) permSum.permissions.rate_limits.report = perm.permissions.rate_limits.report;
+            if(perm.permissions.rate_limits.edit.post.self > permSum.permissions.rate_limits.edit.post.self) permSum.permissions.rate_limits.edit.post.self = perm.permissions.rate_limits.edit.post.self;
+            if(perm.permissions.rate_limits.edit.post.tag > permSum.permissions.rate_limits.edit.post.tag) permSum.permissions.rate_limits.edit.post.tag = perm.permissions.rate_limits.edit.post.tag;
+            if(perm.permissions.rate_limits.edit.post.category > permSum.permissions.rate_limits.edit.post.category) permSum.permissions.rate_limits.edit.post.category = perm.permissions.rate_limits.edit.post.category;
+            if(perm.permissions.rate_limits.edit.post.forum > permSum.permissions.rate_limits.edit.post.forum) permSum.permissions.rate_limits.edit.post.forum = perm.permissions.rate_limits.edit.post.forum;
+            if(perm.permissions.rate_limits.edit.article.self > permSum.permissions.rate_limits.edit.article.self) permSum.permissions.rate_limits.edit.article.self = perm.permissions.rate_limits.edit.article.self;
+            if(perm.permissions.rate_limits.edit.article.tag > permSum.permissions.rate_limits.edit.article.tag) permSum.permissions.rate_limits.edit.article.tag = perm.permissions.rate_limits.edit.article.tag;
+            if(perm.permissions.rate_limits.edit.article.category > permSum.permissions.rate_limits.edit.article.category) permSum.permissions.rate_limits.edit.article.category = perm.permissions.rate_limits.edit.article.category;
+            if(perm.permissions.rate_limits.edit.comment > permSum.permissions.rate_limits.edit.comment) permSum.permissions.rate_limits.edit.comment = perm.permissions.rate_limits.edit.comment;
+            if(perm.permissions.rate_limits.edit.note > permSum.permissions.rate_limits.edit.note) permSum.permissions.rate_limits.edit.note = perm.permissions.rate_limits.edit.note;
+            if(perm.permissions.rate_limits.edit.user > permSum.permissions.rate_limits.edit.user) permSum.permissions.rate_limits.edit.user = perm.permissions.rate_limits.edit.user;
+            if(perm.permissions.rate_limits.edit.category > permSum.permissions.rate_limits.edit.category) permSum.permissions.rate_limits.edit.category = perm.permissions.rate_limits.edit.category;
+            if(perm.permissions.rate_limits.edit.forum > permSum.permissions.rate_limits.edit.forum) permSum.permissions.rate_limits.edit.forum = perm.permissions.rate_limits.edit.forum;
+            
     }
     permSum.permissions.flags = Array.from(sets.flag);
     return permSum;
@@ -421,10 +522,12 @@ function syncScheduleDMsg(daemon, action, load){
         "data": load
     };
     return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(); //Failed scheduled message.
+        },30000);
         let executor = (msg) => {
             if(msg.id == messageID){
                 resolve(msg);
-                //remove this listener
                 daemon.removeListener("message", executor);
             }
         };
