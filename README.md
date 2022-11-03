@@ -1,47 +1,38 @@
+Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) | [简体中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-CN.md)
+
+---
+
+**This project is in active development, and is NOT ready for use.**
+
 # The Blorum Project - API Server 
 <img alt="Blorum Bird" src="https://github.com/SorenEricMent/blorum/blob/main/statics/blorum.png" width="100" height="100">
 
-Languages : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) [中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-cn.md)
-
-## This project is in active development, and is not ready for use.
-
-#### _To combine personal blog with public forum._
-
+***To combine personal blog with public forum.***
 
 ## Install prerequisite
 
 ## How to install
 
-> git clone https://github.com/SorenEricMent/blorum
->
-> cd blorum
->
-> npm install
+```shell
+git clone https://github.com/SorenEricMent/blorum
+cd blorum
+npm install
+```
 
 ...As simple as that
 
-Blorum provided three install modes for you to choose
+Blorum provided three install modes for you to choose:
 
-- Noob mode
+- Noob mode  
+  Only ask you basic informations, done quick.
 
-Only ask you basic informations, done quick.
+- Expert mode  
+  Ask you about basic informations, site configs..., this mode is suggested.
 
-
-
-- Expert mode
-
-Ask you about basic informations, site configs..., this mode is suggested.
-
-
-
-- Lunatic Expert mode
-
-Ask you to config EVERY values and flags, takes an EXTREMELY long time, be sure if you want to use it.
-
-
+- Lunatic Expert mode  
+  Ask you to config EVERY values and flags, takes an EXTREMELY long time, be sure if you want to use it.
 
 In the process of installation, if you typoed, you could input "back" to change the answer to previous quesition.
-
 
 ## Documentations
 Documents about the Blorum and the whole Blorum project could be found under this repo 
