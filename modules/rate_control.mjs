@@ -63,7 +63,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                     let redisKeyIT = iapi.rp + ":ip_token_bucket:" + reqInfo.ip;
                     iapi.getRedisKeyIfExists(redisKeyIT).then((result) => {
                         if(result !== null){
-                            this.redis.pttl(redisKeyIT).then((TTLLeft) => {
+                            this.redis.ttl(redisKeyIT).then((TTLLeft) => {
                                 let IPTokenBucket = JSON.parse(result);
                                 judger(reqPath, reqMethod, IPTokenBucket).then((result) => {
                                     //update with result.newBucket
@@ -71,7 +71,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                                         if(err){
                                             reject({
                                                 "status": 500,
-                                                "message": "error when update IP token bucket."
+                                                "message": "error when update IP token bucket. " + err + " " + TTLLeft
                                             });
                                         }else{
                                             resolve();
@@ -122,7 +122,7 @@ function RateControlMiddleware(log, redis, siteConfig, iapi, getReqInfo) {
                 let redisKeyUT = iapi.rp + ":user_token_bucket:" + req.validUserID;
                 iapi.getRedisKeyIfExists(redisKeyUT).then((result) => {
                     if(result !== null){
-                        this.redis.pttl(redisKeyUT).then((TTLLeft) => {
+                        this.redis.ttl(redisKeyUT).then((TTLLeft) => {
                             let userTokenBucket = JSON.parse(result);
                             judger(reqPath, reqMethod, userTokenBucket).then((result) => {
                                 //update with result.newBucket

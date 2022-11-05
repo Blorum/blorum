@@ -7,7 +7,102 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
         "administrative"
     ],
     "max_session":10,
-    "cookie_expire_after":1315000
+    "cookie_expire_after":1315000,
+    "user": {
+                "permission": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                },
+                "role": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0,
+                    "allow": []
+                },
+                "grant": {
+                    "level": 0,
+                    "allow": []
+                },
+                "remove": {
+                    "level": 0,
+                    "allow": []
+                }
+            },
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                }
+            },
+            "forum": {
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }
+            },
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
+            "report": {
+                "create": 0
+            },
+            "log": {
+                "read": 0
+            }
 }'
 ,'{
             "login": -1,
@@ -60,13 +155,112 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
             }
         }'),
 
+
+
+
+
 ('auditor', 1,1, '
 {
     "flags":[
         
     ],
     "max_session":10,
-    "cookie_expire_after":1315000
+    "cookie_expire_after":1315000,
+                "user": {
+                "permission": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                },
+                "role": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0,
+                    "allow": []
+                },
+                "grant": {
+                    "level": 0,
+                    "allow": []
+                },
+                "remove": {
+                    "level": 0,
+                    "allow": []
+                }
+            },
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                }
+            },
+            "forum": {
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }
+            },
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
+            "report": {
+                "create": 0
+            },
+            "log": {
+                "read": 0
+            }
 }'
 , '{
             "login": 20,
@@ -120,13 +314,112 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
         }
 '),
 
+
+
+
+
 ('forum_admin', 1,1, '
 {
     "flags":[
         "administrative"
     ],
     "max_session":10,
-    "cookie_expire_after":1315000
+    "cookie_expire_after":1315000,
+                "user": {
+                "permission": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                },
+                "role": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0,
+                    "allow": []
+                },
+                "grant": {
+                    "level": 0,
+                    "allow": []
+                },
+                "remove": {
+                    "level": 0,
+                    "allow": []
+                }
+            },
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                }
+            },
+            "forum": {
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }
+            },
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
+            "report": {
+                "create": 0
+            },
+            "log": {
+                "read": 0
+            }
 }'
 , '{
             "login": 20,
@@ -179,12 +472,111 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
             }
         }'),
 
+
+
+
+
 ('moderator', 1,1, '{
     "flags":[
         "administrative"
     ],
     "max_session":10,
-    "cookie_expire_after":1315000
+    "cookie_expire_after":1315000,
+                "user": {
+                "permission": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                },
+                "role": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0,
+                    "allow": []
+                },
+                "grant": {
+                    "level": 0,
+                    "allow": []
+                },
+                "remove": {
+                    "level": 0,
+                    "allow": []
+                }
+            },
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                }
+            },
+            "forum": {
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }
+            },
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
+            "report": {
+                "create": 0
+            },
+            "log": {
+                "read": 0
+            }
 }'
 , '{
             "login": 30,
@@ -237,12 +629,111 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
             }
         }'),
 
+
+
+
+
 ('user', 1,1, '{
     "flags":[
         
     ],
     "max_session":8,
-    "cookie_expire_after":2630000000
+    "cookie_expire_after":2630000,
+                "user": {
+                "permission": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                },
+                "role": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0,
+                    "allow": []
+                },
+                "grant": {
+                    "level": 0,
+                    "allow": []
+                },
+                "remove": {
+                    "level": 0,
+                    "allow": []
+                }
+            },
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                }
+            },
+            "forum": {
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }
+            },
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
+            "report": {
+                "create": 0
+            },
+            "log": {
+                "read": 0
+            }
 }'
 , '{
             "login": 20,
@@ -295,12 +786,111 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
             }
         }'),
 
+
+
+
+
 ('writer', 1,1, '{
     "flags":[
         
     ],
     "max_session":10,
-    "cookie_expire_after":2630000000
+    "cookie_expire_after":2630000,
+                "user": {
+                "permission": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                },
+                "role": {
+                    "read": {
+                        "default": 0,
+                        "allow": []
+                    }
+                }
+            },
+            "role": {
+                "read": {
+                    "default": 0,
+                    "allow": []
+                },
+                "grant": {
+                    "level": 0,
+                    "allow": []
+                },
+                "remove": {
+                    "level": 0,
+                    "allow": []
+                }
+            },
+            "article": {
+                "read": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                },
+                "create": {
+                    "default": 0,
+                    "category": {
+                        "allow": []
+                    },
+                    "tag": {
+                        "allow": []
+                    }
+                }
+            },
+            "forum": {
+                "default": {
+                    "read": {
+                        "category": {
+                            "allow": []
+                        },
+                        "tag": {
+                            "allow": []
+                        }
+                    }
+                }
+            },
+            "comment": {
+                "post": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                },
+                "user": {
+                    "default": 0
+                },
+                "article": {
+                    "tag": {
+                        "allow": []
+                    },
+                    "category": {
+                        "allow": []
+                    }
+                }
+            },
+            "tag": {
+                "create": 0,
+                "remove": 0,
+                "add": {
+                    "article": 0,
+                    "post": 0
+                }
+            },
+            "report": {
+                "create": 0
+            },
+            "log": {
+                "read": 0
+            }
 }'
 , '{
             "login": 20,
@@ -352,6 +942,11 @@ INSERT INTO `roles` (`name`, `type`, `with_rate_limit`, `permissions`, `rate_lim
                 "change_config": 0
             }
         }'),
+
+
+
+
+
 
 ('guest', 0,1, '{
     "flags":[

@@ -1,4 +1,5 @@
 import { blake3 } from '@noble/hashes/blake3';
+
 import { default as crypto } from "crypto";
 import Redis from "ioredis";
 import parse from "simdjson";
@@ -72,7 +73,7 @@ function outputLogsColored(level, context, info) {
 }
 
 function blake3Hash(text) {
-    return blake3(text, { "length": 66 }).toString("base64");
+    return Buffer.from(blake3.create({dkLen: 66}).update(text).digest()).toString('base64');
 }
 
 function generateNewToken(salt, username) {
@@ -377,11 +378,11 @@ function getPermissionSum(arr) {
     var arrLen = arr.length;
     //The following part is generated to ensure the best performance, do not "optimize" it
     for (var i = 0; i < arrLen; i++) {
+        let perm = arr[i];
         if (perm.with_rate_limit === 1) {
             isRateLimitContained = true;
         }
         //Flag processing
-        let perm = arr[i];
         let flagLen = perm.permissions.flags.length;
         for (var j = 0; j < flagLen; j++) {
             sets.flag.add(perm.permissions.flags[j]);
@@ -438,6 +439,21 @@ function getPermissionSum(arr) {
         for (var j = 0; j < comment_post_category_allowLen; j++) {
             sets.comment_post_category_allow.add(perm.permissions.comment.post.category.allow[j]);
         }
+        permSum.permissions.flags = Array.from(sets.flag);
+        permSum.permissions.user.permission.read.allow = Array.from(sets.user_permission_read_allow);
+        permSum.permissions.user.role.read.allow = Array.from(sets.user_role_read_allow);
+        permSum.permissions.role.read.allow = Array.from(sets.role_read_allow);
+        permSum.permissions.role.grant.allow = Array.from(sets.role_grant_allow);
+        permSum.permissions.role.remove.allow = Array.from(sets.role_remove_allow);
+        permSum.permissions.article.read.category.allow = Array.from(sets.article_read_category_allow);
+        permSum.permissions.article.read.tag.allow = Array.from(sets.article_read_tag_allow);
+        permSum.permissions.article.create.category.allow = Array.from(sets.article_create_category_allow);
+        permSum.permissions.article.create.tag.allow = Array.from(sets.article_create_tag_allow);
+        permSum.permissions.forum.default.read.category.allow = Array.from(sets.forum_default_read_category_allow);
+        permSum.permissions.forum.default.read.tag.allow = Array.from(sets.forum_default_read_tag_allow);
+        permSum.permissions.comment.post.tag.allow = Array.from(sets.comment_post_tag_allow);
+        permSum.permissions.comment.post.category.allow = Array.from(sets.comment_post_category_allow);
+        
 
         //Value processing
         if(perm.permissions.max_session > permSum.permissions.max_session) permSum.permissions.max_session = perm.permissions.max_session;
@@ -462,24 +478,43 @@ function getPermissionSum(arr) {
         permSum.with_rate_limit = 1;
         for (var i = 0; i < arrLen; i++) {
             let perm = arr[i];
-            if(perm.permissions.rate_limits.login > permSum.permissions.rate_limits.login) permSum.permissions.rate_limits.login = perm.permissions.rate_limits.login;
-            if(perm.permissions.rate_limits.invite > permSum.permissions.rate_limits.invite) permSum.permissions.rate_limits.invite = perm.permissions.rate_limits.invite;
-            if(perm.permissions.rate_limits.report > permSum.permissions.rate_limits.report) permSum.permissions.rate_limits.report = perm.permissions.rate_limits.report;
-            if(perm.permissions.rate_limits.edit.post.self > permSum.permissions.rate_limits.edit.post.self) permSum.permissions.rate_limits.edit.post.self = perm.permissions.rate_limits.edit.post.self;
-            if(perm.permissions.rate_limits.edit.post.tag > permSum.permissions.rate_limits.edit.post.tag) permSum.permissions.rate_limits.edit.post.tag = perm.permissions.rate_limits.edit.post.tag;
-            if(perm.permissions.rate_limits.edit.post.category > permSum.permissions.rate_limits.edit.post.category) permSum.permissions.rate_limits.edit.post.category = perm.permissions.rate_limits.edit.post.category;
-            if(perm.permissions.rate_limits.edit.post.forum > permSum.permissions.rate_limits.edit.post.forum) permSum.permissions.rate_limits.edit.post.forum = perm.permissions.rate_limits.edit.post.forum;
-            if(perm.permissions.rate_limits.edit.article.self > permSum.permissions.rate_limits.edit.article.self) permSum.permissions.rate_limits.edit.article.self = perm.permissions.rate_limits.edit.article.self;
-            if(perm.permissions.rate_limits.edit.article.tag > permSum.permissions.rate_limits.edit.article.tag) permSum.permissions.rate_limits.edit.article.tag = perm.permissions.rate_limits.edit.article.tag;
-            if(perm.permissions.rate_limits.edit.article.category > permSum.permissions.rate_limits.edit.article.category) permSum.permissions.rate_limits.edit.article.category = perm.permissions.rate_limits.edit.article.category;
-            if(perm.permissions.rate_limits.edit.comment > permSum.permissions.rate_limits.edit.comment) permSum.permissions.rate_limits.edit.comment = perm.permissions.rate_limits.edit.comment;
-            if(perm.permissions.rate_limits.edit.note > permSum.permissions.rate_limits.edit.note) permSum.permissions.rate_limits.edit.note = perm.permissions.rate_limits.edit.note;
-            if(perm.permissions.rate_limits.edit.user > permSum.permissions.rate_limits.edit.user) permSum.permissions.rate_limits.edit.user = perm.permissions.rate_limits.edit.user;
-            if(perm.permissions.rate_limits.edit.category > permSum.permissions.rate_limits.edit.category) permSum.permissions.rate_limits.edit.category = perm.permissions.rate_limits.edit.category;
-            if(perm.permissions.rate_limits.edit.forum > permSum.permissions.rate_limits.edit.forum) permSum.permissions.rate_limits.edit.forum = perm.permissions.rate_limits.edit.forum;
+            if(perm.rate_limits.login > permSum.rate_limits.login) permSum.rate_limits.login = perm.rate_limits.login;
+            if(perm.rate_limits.invite > permSum.rate_limits.invite) permSum.rate_limits.invite = perm.rate_limits.invite;
+            if(perm.rate_limits.report > permSum.rate_limits.report) permSum.rate_limits.report = perm.rate_limits.report;
+            if(perm.rate_limits.edit.post.self > permSum.rate_limits.edit.post.self) permSum.rate_limits.edit.post.self = perm.rate_limits.edit.post.self;
+            if(perm.rate_limits.edit.post.tag > permSum.rate_limits.edit.post.tag) permSum.rate_limits.edit.post.tag = perm.rate_limits.edit.post.tag;
+            if(perm.rate_limits.edit.post.category > permSum.rate_limits.edit.post.category) permSum.rate_limits.edit.post.category = perm.rate_limits.edit.post.category;
+            if(perm.rate_limits.edit.post.forum > permSum.rate_limits.edit.post.forum) permSum.rate_limits.edit.post.forum = perm.rate_limits.edit.post.forum;
+            if(perm.rate_limits.edit.article.self > permSum.rate_limits.edit.article.self) permSum.rate_limits.edit.article.self = perm.rate_limits.edit.article.self;
+            if(perm.rate_limits.edit.article.tag > permSum.rate_limits.edit.article.tag) permSum.rate_limits.edit.article.tag = perm.rate_limits.edit.article.tag;
+            if(perm.rate_limits.edit.article.category > permSum.rate_limits.edit.article.category) permSum.rate_limits.edit.article.category = perm.rate_limits.edit.article.category;
+            if(perm.rate_limits.edit.comment > permSum.rate_limits.edit.comment) permSum.rate_limits.edit.comment = perm.rate_limits.edit.comment;
+            if(perm.rate_limits.edit.note > permSum.rate_limits.edit.note) permSum.rate_limits.edit.note = perm.rate_limits.edit.note;
+            if(perm.rate_limits.edit.user > permSum.rate_limits.edit.user) permSum.rate_limits.edit.user = perm.rate_limits.edit.user;
+            if(perm.rate_limits.edit.category > permSum.rate_limits.edit.category) permSum.rate_limits.edit.category = perm.rate_limits.edit.category;
+            if(perm.rate_limits.edit.forum > permSum.rate_limits.edit.forum) permSum.rate_limits.edit.forum = perm.rate_limits.edit.forum;
+            if(perm.rate_limits.create.category > permSum.rate_limits.create.category) permSum.rate_limits.create.category = perm.rate_limits.create.category;
+            if(perm.rate_limits.create.post > permSum.rate_limits.create.post) permSum.rate_limits.create.post = perm.rate_limits.create.post;
+            if(perm.rate_limits.create.react > permSum.rate_limits.create.react) permSum.rate_limits.create.react = perm.rate_limits.create.react;
+            if(perm.rate_limits.create.article > permSum.rate_limits.create.article) permSum.rate_limits.create.article = perm.rate_limits.create.article
+            if(perm.rate_limits.create.comment > permSum.rate_limits.create.comment) permSum.rate_limits.create.comment = perm.rate_limits.create.comment;
+            if(perm.rate_limits.create.note > permSum.rate_limits.create.note) permSum.rate_limits.create.note = perm.rate_limits.create.note;
+            if(perm.rate_limits.create.forum > permSum.rate_limits.create.forum) permSum.rate_limits.create.forum = perm.rate_limits.create.forum;
+            if(perm.rate_limits.create.report > permSum.rate_limits.create.report) permSum.rate_limits.create.report = perm.rate_limits.create.report;
+            if(perm.rate_limits.create.user > permSum.rate_limits.create.user) permSum.rate_limits.create.user = perm.rate_limits.create.user;
+            if(perm.rate_limits.remove.category > permSum.rate_limits.remove.category) permSum.rate_limits.remove.category = perm.rate_limits.remove.category;
+            if(perm.rate_limits.remove.post > permSum.rate_limits.remove.post) permSum.rate_limits.remove.post = perm.rate_limits.remove.post;
+            if(perm.rate_limits.remove.react > permSum.rate_limits.remove.react) permSum.rate_limits.remove.react = perm.rate_limits.remove.react;
+            if(perm.rate_limits.remove.article > permSum.rate_limits.remove.article) permSum.rate_limits.remove.article = perm.rate_limits.remove.article;
+            if(perm.rate_limits.remove.comment > permSum.rate_limits.remove.comment) permSum.rate_limits.remove.comment = perm.rate_limits.remove.comment;
+            if(perm.rate_limits.remove.note > permSum.rate_limits.remove.note) permSum.rate_limits.remove.note = perm.rate_limits.remove.note;
+            if(perm.rate_limits.remove.forum > permSum.rate_limits.remove.forum) permSum.rate_limits.remove.forum = perm.rate_limits.remove.forum;
+            if(perm.rate_limits.remove.report > permSum.rate_limits.remove.report) permSum.rate_limits.remove.report = perm.rate_limits.remove.report;
+            if(perm.rate_limits.remove.user > permSum.rate_limits.remove.user) permSum.rate_limits.remove.user = perm.rate_limits.remove.user;
+            if(perm.rate_limits.site.change_config > permSum.rate_limits.site.change_config) permSum.rate_limits.site.change_config = perm.rate_limits.site.change_config;
             
+        }
     }
-    permSum.permissions.flags = Array.from(sets.flag);
     return permSum;
 }
 
