@@ -9,15 +9,29 @@ let permSum = {
                 "read": {
                     "default": 0,
                     "all": 0,
-                    "allow": []
+                    "allow": [],
+                    "edit_list": 0
                 }
             },
             "role": {
                 "read": {
                     "default": 0,
                     "all": 0,
-                    "allow": []
-                }
+                    "allow": [],
+                    "edit_list": 0
+                },
+                "grant": {
+                    "default": 0,
+                    "all": 0,
+                    "allow": [],
+                    "edit_list": 0
+                },
+                "remove": {
+                    "default": 0,
+                    "all": 0,
+                    "allow": [],
+                    "edit_list": 0
+                },
             }
         },
         "role": {
@@ -33,6 +47,14 @@ let permSum = {
                 "default": 0,
                 "allow": []
             },
+            "edit": {
+                "default": 0,
+                "allow": [],
+                "permission": {
+                    "default": 0,
+                    "allow": []
+                }
+            }
         },
         "article": {
             "read": {
