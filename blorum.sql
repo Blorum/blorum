@@ -35,7 +35,7 @@ CREATE TABLE `articles` (
 --
 
 INSERT INTO `articles` (`aid`, `uid`, `title`, `content`, `excerpt`, `tags`, `category`, `status`, `history`, `statistics`, `slug`) VALUES
-(0, 0, '_blorum_root', '', '', '', '', '{}', '{}', '{}', NULL);
+(0, 0, '__blorum_root', '', '', '', '', '{}', '{}', '{}', NULL);
 
 -- --------------------------------------------------------
 
@@ -47,6 +47,7 @@ CREATE TABLE `categories` (
   `cid` int UNSIGNED NOT NULL,
   `type` tinyint NOT NULL,
   `name` varchar(64) NOT NULL,
+  `icon` varchar(128) NOT NULL,
   `parent` text NOT NULL,
   `children` text NOT NULL,
   `statistics` json NOT NULL
@@ -57,7 +58,19 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`cid`, `type`, `name`, `parent`, `children`, `statistics`) VALUES
-(1, 0, '_blorum_root', '', '', '{}');
+(0, 0, '__blorum_root', '', '', '{}');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tags`
+--
+
+CREATE TABLE `tags` (
+  `name` varchar(64) NOT NULL,
+  `icon` varchar(128) NOT NULL,
+  `statistics` json NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 -- --------------------------------------------------------
 
@@ -213,7 +226,7 @@ CREATE TABLE `forum` (
   `root_categories` text NOT NULL,
   `pin` json NOT NULL,
   `statistics` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 -- --------------------------------------------------------
 
@@ -257,7 +270,7 @@ CREATE TABLE `notes` (
   `uid` int UNSIGNED NOT NULL,
   `content` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `history` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 --
 -- Dumping data for table `notes`
@@ -284,7 +297,7 @@ CREATE TABLE `posts` (
   `statistics` json NOT NULL,
   `history` json NOT NULL,
   `status` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 --
 -- Dumping data for table `posts`
@@ -376,7 +389,7 @@ CREATE TABLE `rv_comments_p` (
   `children` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `type` tinyint NOT NULL,
   `history` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 -- --------------------------------------------------------
 
@@ -392,7 +405,7 @@ CREATE TABLE `rv_comments_u` (
   `content` json NOT NULL,
   `type` tinyint NOT NULL,
   `history` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 -- --------------------------------------------------------
 
@@ -410,7 +423,7 @@ CREATE TABLE `rv_posts` (
   `is_conversation` tinyint(1) NOT NULL DEFAULT '0',
   `viewer` json DEFAULT NULL,
   `history` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 -- --------------------------------------------------------
 
@@ -421,18 +434,7 @@ CREATE TABLE `rv_posts` (
 CREATE TABLE `statistics` (
   `name` varchar(64) NOT NULL,
   `value` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tags`
---
-
-CREATE TABLE `tags` (
-  `name` varchar(64) NOT NULL,
-  `statistics` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
 -- --------------------------------------------------------
 

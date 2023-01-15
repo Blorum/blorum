@@ -22,5 +22,19 @@
             "port": 6379,
             "password": "REDIS_PASSWORD"
         }
+    },
+    "builtin_cache": {
+        "enabled": true,
+        "parameters": {
+            "circumstance_1": {
+
+            },
+            "circumstance_2": {
+                
+            },
+            "circumstance_3": {
+                
+            }
+        }
     }
 }
