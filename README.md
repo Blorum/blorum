@@ -4,6 +4,8 @@ Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md
 
 **This project is in active development, and is NOT ready for use.**
 
+The development of Blorum core is temporarily halted, it will be resumed after the permission documentation in Blorum/blorum-docs is finished.
+
 # The Blorum Project - API Server 
 <img alt="Blorum Bird" src="https://github.com/SorenEricMent/blorum/blob/main/statics/blorum.png" width="100" height="100">
 
