@@ -73,7 +73,7 @@ function outputLogsColored(level, context, info) {
 }
 
 function blake3Hash(text) {
-    return Buffer.from(blake3.create({dkLen: 66}).update(text).digest()).toString('base64');
+    return Buffer.from(blake3.create({ dkLen: 66 }).update(text).digest()).toString('base64');
 }
 
 function generateNewToken(salt, username) {
@@ -191,208 +191,100 @@ function mergeArray(...args) {
     return Array.from(new Set(args.reduce((a, b) => a.concat(b))));
 }
 
+function convertSetsToArrays(obj) {
+    for (const key in obj) {
+      if (obj[key] instanceof Set) {
+        obj[key] = [...obj[key]];
+      } else if (typeof obj[key] === 'object') {
+        convertSetsToArrays(obj[key]);
+      }
+    }
+    return obj;
+  }
+
 function getFinalPermission(arr) {
+    //TODO: update with role type
+
     //v temp to be removed
     return getPermissionSum(arr);
     //^ temp to be removed
-
 }
 
-function getPermissionSum(arr) {
-    //Grantive role permission sum
+function getPermissionSum(roleType, ...objects) {
+    //roleType: 0 for Limitive(disallow), 1 for grantive(allow)
 
-    //permSum is also the permission fallback, 
-    //any permissions given to the user will override the permSum
-
-    //PRIORITY TODO
-    //update database permission sql to new format
-    let permSum = {
-        "with_rate_limit": 0,
-        "permissions": {
-            "flags": [],
-            "max_session": 10,
-            "cookie_expire_after": 13150000000,
-            "user": {
-                "permission": {
-                    "read": {
-                        "default": 0,
-                        "allow": []
-                    }
-                },
-                "role": {
-                    "read": {
-                        "default": 0,
-                        "allow": []
-                    }
-                }
-            },
-            "role": {
-                "read": {
-                    "default": 0,
-                    "allow": []
-                },
-                "grant": {
-                    "level": 0,
-                    "allow": []
-                },
-                "remove": {
-                    "level": 0,
-                    "allow": []
-                },
-            },
-            "article": {
-                "read": {
-                    "default": 0,
-                    "category": {
-                        "allow": []
-                    },
-                    "tag": {
-                        "allow": []
-                    }
-                },
-                "create": {
-                    "default": 0,
-                    "category": {
-                        "allow": []
-                    },
-                    "tag": {
-                        "allow": []
-                    }
-                },
-            },
-            "forum": {
-                "default": {
-                    "read": {
-                        "category": {
-                            "allow": []
-                        },
-                        "tag": {
-                            "allow": []
+    //TODO: s_allow merging, permSum
+    const permSum = {};
+  
+    function recr(permSum, obj) {
+        const keys = Object.keys(obj);
+        keys.forEach((key) => {
+            if (permSum.hasOwnProperty(key)) {
+                if (typeof obj[key] === 'object') {
+                    const subkeys = Object.keys(obj[key]);
+                    subkeys.forEach((subKey) => {
+                        if (subKey === "default") {
+                            permSum[key][subKey] = roleType ? Math.max(permSum[key][subKey], obj[key][subKey]) : Math.min(permSum[key][subKey], obj[key][subKey]);
+                        } else if (subKey === "all") {
+                            permSum[key][subKey] = roleType ? 1 : permSum[key][subKey];
+                        } else if (subKey === "allow" || subKey === "disallow") {
+                            if (roleType && subKey === "allow") {
+                                for (const value of obj[key][subKey]) {
+                                    permSum[key][subKey].add(value);
+                                }
+                            }
+                            if (!roleType && subKey === "disallow") {
+                                for (const value of obj[key][subKey]) {
+                                    permSum[key][subKey].add(value);
+                                }
+                            }
+                        } else if (subKey === "s_allow") {
+                            // special judgement for s_allow field
+                            let value = obj[key][subKey];
+                        } else if (typeof obj[key][subKey] === 'object') {
+                            recr(permSum[key], obj[key]);
                         }
-                    }
+                    });
                 }
-            },
-            "comment": {
-                "post": {
-                    "tag": {
-                        "allow": []
-                    },
-                    "category": {
-                        "allow": []
-                    }
-                },
-                "user": {
-                    "default": 0
-                },
-                "article": {
-                    "tag": {
-                        "allow": []
-                    },
-                    "category": {
-                        "allow": []
-                    }
-                }
-            },
-            "tag": {
-                "create": 0,
-                "remove": 0,
-                "add": {
-                    "article": 0,
-                    "post": 0
-                }
-            },
-            "report": {
-                "create": 0
-            },
-            "log": {
-                "read": 0
             }
-        },
-        "rate_limits": {
-            "login": 1,
-            "invite": 0,
-            "report": 0,
-            "edit": {
-                "post": {
-                    "self": 0,
-                    "tag": 0,
-                    "category": 0,
-                    "forum": 0
-                },
-                "article": {
-                    "self": 0,
-                    "tag": 0,
-                    "category": 0
-                },
-                "comment": 0,
-                "note": 0,
-                "user": 0,
-                "category": 0,
-                "forum": 0,
-            },
-            "create": {
-                "category": 0,
-                "post": 0,
-                "react": 0,
-                "article": 0,
-                "comment": 0,
-                "note": 0,
-                "forum": 0,
-                "report": 0,
-                "user": 0
-            },
-            "remove": {
-                "category": 0,
-                "post": 0,
-                "react": 0,
-                "article": 0,
-                "comment": 0,
-                "note": 0,
-                "forum": 0,
-                "report": 0,
-                "user": 0
-            },
-            "site": {
-                "change_config": 0
-            }
-        }
-    };
-    //TODO: update permission sum
+        });
+    }
+  
+    for (const obj of objects) {
+      recr(permSum, obj);
+    }
     return permSum;
-}
+  }
 
-function getLPermissionSum(arr) {
-    //Limitive permission sum.
-    //TODO
-}
 
-function InfFixProxy(obj){
+
+function InfFixProxy(obj) {
     return new Proxy(obj, {
-        get: function(target, prop, receiver) {
+        get: function (target, prop, receiver) {
             let val = Reflect.get(target, prop, receiver);
-            if(val == -1){
+            if (val == -1) {
                 return Infinity;
             }
             return val;
         },
-        set: function(target, prop, value, receiver) {
+        set: function (target, prop, value, receiver) {
             return Reflect.set(target, prop, value, receiver);
         }
     })
 }
 
-function removeElementFromArray(arr, element){
+function removeElementFromArray(arr, element) {
     let index = arr.indexOf(element);
-    if(index > -1){
+    if (index > -1) {
         arr.splice(index, 1);
     }
 }
 
-function filterAction(obj){
+function filterAction(obj) {
     //Remove all dumplicate actions in an actionList
 }
 
-function syncScheduleDMsg(daemon, action, load){
+function syncScheduleDMsg(daemon, action, load) {
     let messageID = uuidv4();
     let message = {
         "id": messageID,
@@ -402,9 +294,9 @@ function syncScheduleDMsg(daemon, action, load){
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             reject(); //Failed scheduled message.
-        },30000);
+        }, 30000);
         let executor = (msg) => {
-            if(msg.id == messageID){
+            if (msg.id == messageID) {
                 resolve(msg);
                 daemon.removeListener("message", executor);
             }

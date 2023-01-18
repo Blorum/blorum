@@ -104,7 +104,6 @@ function initializeRouter(iapi, mysqlConnection, redisConnection, siteConfig, lo
             next();
         }
     });
-
     //to be removed in the future
     blorumRouter.get('/debug', function(req, res){
         if(req.isUserSessionValid){
@@ -128,7 +127,7 @@ function initializeRouter(iapi, mysqlConnection, redisConnection, siteConfig, lo
     });
 
     //Static file serving
-    blorumRouter.get("/favicon.ico", function(req, res){
+    blorumRouter.get("/favicon.ico", function(req, res){ 
         let __dirname = fileURLToPath(import.meta.url);
         let filePath = join(__dirname, '..', '..','statics/blorum256.ico');
         res.status(200).sendFile(filePath);

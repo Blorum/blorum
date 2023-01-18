@@ -48,6 +48,7 @@ CREATE TABLE `categories` (
   `type` tinyint NOT NULL,
   `name` varchar(64) NOT NULL,
   `icon` varchar(128) NOT NULL,
+  `available` json NOT NULL,
   `parent` text NOT NULL,
   `children` text NOT NULL,
   `statistics` json NOT NULL
@@ -57,8 +58,8 @@ CREATE TABLE `categories` (
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`cid`, `type`, `name`, `parent`, `children`, `statistics`) VALUES
-(0, 0, '__blorum_root', '', '', '{}');
+INSERT INTO `categories` (`cid`, `type`, `name`,`icon`, `available`, `parent`, `children`, `statistics`) VALUES
+(0, 0, '__blorum_root','','{}', '', '', '{}');
 
 -- --------------------------------------------------------
 
@@ -69,6 +70,7 @@ INSERT INTO `categories` (`cid`, `type`, `name`, `parent`, `children`, `statisti
 CREATE TABLE `tags` (
   `name` varchar(64) NOT NULL,
   `icon` varchar(128) NOT NULL,
+  `available` json NOT NULL,
   `statistics` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=uft8mb4;
 
