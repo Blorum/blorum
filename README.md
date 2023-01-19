@@ -7,7 +7,7 @@ Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md
 The development of Blorum core is temporarily halted, it will be resumed after the permission documentation in Blorum/blorum-docs is finished.
 
 # The Blorum Project - API Server 
-<img alt="Blorum Bird" src="https://github.com/SorenEricMent/blorum/blob/main/statics/blorum.png" width="100" height="100">
+<img alt="Blorum Bird" src="https://github.com/Blorum/.github/blob/main/profile/blorum.png" width="100" height="100">
 
 ***To combine personal blog with public forum.***
 
