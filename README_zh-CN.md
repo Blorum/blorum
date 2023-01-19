@@ -1,11 +1,13 @@
-Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) | [简体中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-CN.md)
+Language: [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) | [简体中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-CN.md)
 
 ---
 
-**该项目仍在积极开发中，尚未准备好使用。**
+**该项目仍在积极开发中，尚未准备好投入使用。**
+
+Blorum核心开发暂时停止，待[Blorum/blorum-docs](https://github.com/Blorum/blorum-docs)中的权限文档完成后恢复。
 
 # The Blorum Project - API Server 
-<img alt="Blorum Bird" src="https://github.com/SorenEricMent/blorum/blob/main/statics/blorum.png" width="100" height="100">
+<img alt="Blorum Bird" src="https://github.com/Blorum/.github/blob/main/profile/blorum.png" width="100" height="100">
 
 ***将博客与论坛相结合。***
 
@@ -14,7 +16,7 @@ Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md
 ## 如何安装
 
 ```shell
-git clone https://github.com/SorenEricMent/blorum
+git clone https://github.com/Blorum/blorum
 cd blorum
 npm install
 ```
