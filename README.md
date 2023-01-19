@@ -1,4 +1,4 @@
-Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) | [简体中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-CN.md)
+Language: [English](https://github.com/SorenEricMent/blorum/blob/main/README.md) | [简体中文](https://github.com/SorenEricMent/blorum/blob/main/README_zh-CN.md)
 
 ---
 
