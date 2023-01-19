@@ -2,7 +2,9 @@ Language : [English](https://github.com/SorenEricMent/blorum/blob/main/README.md
 
 ---
 
-**该项目仍在积极开发中，尚未准备好使用。**
+**该项目仍在积极开发中，尚未准备好投入使用。**
+
+Blorum核心开发暂时停止，待[Blorum/blorum-docs](https://github.com/Blorum/blorum-docs)中的权限文档完成后恢复。
 
 # The Blorum Project - API Server 
 <img alt="Blorum Bird" src="https://github.com/SorenEricMent/blorum/blob/main/statics/blorum.png" width="100" height="100">
