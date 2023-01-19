@@ -16,7 +16,7 @@ Blorum核心开发暂时停止，待[Blorum/blorum-docs](https://github.com/Blor
 ## 如何安装
 
 ```shell
-git clone https://github.com/SorenEricMent/blorum
+git clone https://github.com/Blorum/blorum
 cd blorum
 npm install
 ```

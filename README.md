@@ -16,7 +16,7 @@ The development of Blorum core is temporarily halted, it will be resumed after t
 ## How to install
 
 ```shell
-git clone https://github.com/SorenEricMent/blorum
+git clone https://github.com/Blorum/blorum
 cd blorum
 npm install
 ```
@@ -37,8 +37,7 @@ Blorum provided three install modes for you to choose:
 In the process of installation, if you typoed, you could input `back` to change the answer to previous quesition.
 
 ## Documentations
-Documents about the Blorum and the whole Blorum project could be found under this repo 
-[https://github.com/Blorum/blorum-docs](https://github.com/Blorum/blorum-docs)
+Documents about the Blorum and the whole Blorum project could be found under this repo: [https://github.com/Blorum/blorum-docs](https://github.com/Blorum/blorum-docs)
 
 ## Logo
 
